@@ -1,0 +1,12 @@
+; $Id: view_revisions_by_content_type.info,v 1.1 2009/09/27 22:07:01 wimleers Exp $
+name = View revisions by content type
+description = "Provides per-content type 'view revisions' permissions."
+
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-09-27
+version = "6.x-1.0"
+core = "6.x"
+project = "view_revisions_by_content_type"
+datestamp = "1254089792"
+

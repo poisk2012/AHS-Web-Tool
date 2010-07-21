@@ -1,0 +1,13 @@
+name = Popup breadcrumb
+description = Replaces the standard breadcrumb with a block of configurable popup views
+package = User interface
+version = "6.x-3.0"
+core = 6.x
+dependencies[] = popup_ui
+dependencies[] = views
+; Information added by drupal.org packaging script on 2010-02-13
+version = "6.x-3.0"
+core = "6.x"
+project = "popup"
+datestamp = "1266097809"
+

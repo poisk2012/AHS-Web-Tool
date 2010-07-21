@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * Implementation of hook_install.
+ */
+function aef_embedded_edit_install() {
+  //Fully install dependencies, and make them available (D6 flaw)
+  set_time_limit(0);
+  include_once(drupal_get_path('module', 'aef_utilities') .'/aef_utilities.module');
+  aef_utilities_install_dependencies();
+
+  $sql = "UPDATE {system} SET weight = %d WHERE name = '%s'";
+  db_query($sql, 1, 'aef_embedded_edit');
+}
+
+/**
+ * Implementation of hook_uninstall.
+ */
+function aef_embedded_edit_uninstall() {
+
+}

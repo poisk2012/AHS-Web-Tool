@@ -1,0 +1,41 @@
+<?php
+
+function multi_node_edit_maxlength_form_alter(&$form, &$form_state, $form_id) {
+  switch($form_id) {
+    case 'multi_node_edit_form':
+      foreach ($form['nodes'] as $nid_key => $ref_node) {    
+        if(is_numeric($nid_key)) {
+          $form['nodes'][$nid_key]['form_'. $nid_key]['#after_build'][] = 'multi_node_edit_maxlength_after_build';
+        }
+      }
+      break;
+  }
+}
+
+function multi_node_edit_maxlength_after_build($form, $form_state) {
+  $nid = $form['nid']['#value'];
+  $prefix = "nodes-$nid-form-$nid-";
+    
+  $type = $form['type']['#value'];
+  // update the title as needed
+  _maxlength_format_element($form['title'], $form['title']['#default_value'], 'title', $prefix . 'title', $type);
+
+  // Update the body as needed
+  _maxlength_format_element($form['body_field']['body'], $form['body_field']['body']['#default_value'], 'body', $prefix . 'body-field-body', $type);
+
+
+  if (module_exists('content')) {
+    // Get a list of all the CCK fields for this content type 
+    $list = array_keys(content_fields(NULL, $type));
+
+    // Update CCK fields as needed
+    foreach ($list as $field) {
+      if (is_array($form[$field])) {
+        foreach (element_children($form[$field]) as $key) {
+          _maxlength_format_element($form[$field][$key], $form[$field][$key]['value'], $field, $prefix . str_replace('_', '-', $field) .'-'. $key .'-value', $type);
+        }
+      }
+    }
+  }
+  return $form;
+}

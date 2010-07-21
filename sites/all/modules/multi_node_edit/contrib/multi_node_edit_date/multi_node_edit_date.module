@@ -1,0 +1,9 @@
+<?php
+
+/**
+ *  Sample date handler.  This expects to return a unix epoc, so again refer to the previous function.
+ */
+
+function multi_node_edit_cck_date_handler(&$field_value, $post) {
+  //$field_value[0]['value'] = strtotime($field_value[0]['value']);
+}

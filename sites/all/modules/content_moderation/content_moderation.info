@@ -1,0 +1,12 @@
+; $Id: content_moderation.info,v 1.2.2.16 2010/05/01 12:53:19 eugenmayer Exp $
+project = "content_moderation"
+core = "6.x"
+name = Content Moderation
+description = Content Moderation
+package = "Drupal Wiki"
+; Information added by drupal.org packaging script on 2010-05-01
+version = "6.x-1.4"
+core = "6.x"
+project = "content_moderation"
+datestamp = "1272718816"
+

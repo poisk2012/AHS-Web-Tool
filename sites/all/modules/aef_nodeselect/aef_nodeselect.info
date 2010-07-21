@@ -1,0 +1,23 @@
+name = NodeSelect
+description = "Provides a hovering AJAX node search area, very useful to search nodes and drop them on CCK node references."
+version = "6.x-1.0"
+package = AEF
+core = 6.x
+
+dependencies[] = php
+dependencies[] = views
+dependencies[] = date_api
+dependencies[] = content
+dependencies[] = jquery_update
+dependencies[] = jquery_ui
+
+dependencies[] = aef_embedded_edit
+dependencies[] = aef_utilities
+dependencies[] = aef_views_cck_formatter
+
+; Information added by drupal.org packaging script on 2010-01-29
+version = "6.x-1.1"
+core = "6.x"
+project = "aef_nodeselect"
+datestamp = "1264764303"
+

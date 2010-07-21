@@ -1,0 +1,80 @@
+<?php
+
+function multi_node_edit_taxonomy_super_select_form_alter(&$form, &$form_state, $form_id) {
+  switch($form_id) {
+    case 'multi_node_edit_form':
+      foreach ($form['nodes'] as $nid_key => $ref_node) {    
+        if(is_numeric($nid_key)) {
+          if (isset($form['nodes'][$nid_key]['form_'. $nid_key]['taxonomy'])) {
+            $form['nodes'][$nid_key]['form_'. $nid_key] = multi_node_edit_taxonomy_super_select_after_build($form['nodes'][$nid_key]['form_'. $nid_key], $form_state, array('nodes', $nid_key, 'form_'. $nid_key));
+          }
+        }
+      }
+      break;
+  }
+}
+
+// Code blocks copied from taxonomy_super_select_form_alter() with extra recursive function call at the end
+function multi_node_edit_taxonomy_super_select_after_build($form, $form_state, $parents) {
+  $content_type = $form['type']['#value'];
+  // Get all vocabs for this content type
+  $vocabularies = taxonomy_get_vocabularies($content_type);
+  
+  $valid_vocabs = array();
+  foreach ($vocabularies as $vid => $vocabulary) {
+    $tss[$vid] = variable_get('taxonomy_super_select_vid_'. $vid, 0);
+    // Only operate on types for a vocabulary that are enabled
+    if ($tss[$vid]['types'][$content_type]) {
+      // Show radio or checkbox based on the selection type
+      $valid_vocabs[$vid] = $vocabulary->multiple ? 'checkbox' : 'radio';
+      if ($vocabulary->tags) {
+        // Remove any tags from the autocomplete form item (prevent duplicates)
+        $tags[$vid] = $form['taxonomy']['tags'][$vid];
+        $tags[$vid]['#default_value'] = '';
+        $tags[$vid]['#required'] = FALSE;
+        $tags[$vid]['#parents'] = array('taxonomy', 'tags', $vid);
+        $tags[$vid]['#weight'] = -12;
+        $tags[$vid]['#title'] = t('Enter New Tags');
+        unset($form['taxonomy']['tags'][$vid]);
+      }
+      else{
+        // Remove the default form rendering except for freetagging vocabs
+        unset($form['taxonomy'][$vid]);
+      }
+    }
+  }
+  
+  // Go through each enabled vocab and create taxonomy super select
+  foreach ($valid_vocabs as $vid => $input) {
+    // Get root terms for vocabulary only
+    if (!$terms = taxonomy_get_tree($vid, 0, -1, 1)) {
+      continue;
+    }
+    $form['taxonomy'][$vid] = _tss_branch($vid, $vocabularies[$vid]);
+    if ($tags[$vid]) {
+      $form['taxonomy'][$vid]['tags'] = $tags[$vid];
+    }
+    _tss_next_nested($terms, $vid, $input, $tss, $form['#node'], $form['taxonomy'][$vid]);
+  }
+  
+  // recursive function to preappend the correct parent details to the taxonomy parts
+  $form['taxonomy'] = multi_node_edit_taxonomy_super_select_preappend($form['taxonomy'], $parents);
+  
+  return $form;
+}
+
+// recursive function to preappend the correct parent details to the taxonomy parts
+function multi_node_edit_taxonomy_super_select_preappend($form, $parents) {
+  foreach($form as $key => $form_part) {
+    if($key == '#parents' AND is_array($form_part)){
+      $form[$key] = array_merge($parents, $form_part);
+    } 
+    else {
+      if(is_array($form_part)) {
+        $form[$key] = multi_node_edit_taxonomy_super_select_preappend($form_part, $parents);
+      }
+    }
+  }
+  
+  return $form;
+}

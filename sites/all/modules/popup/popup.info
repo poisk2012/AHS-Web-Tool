@@ -1,0 +1,11 @@
+name = Popup
+description = Enable popus of embedded content
+package = User interface
+version = "6.x-3.0"
+core = 6.x
+; Information added by drupal.org packaging script on 2010-02-13
+version = "6.x-3.0"
+core = "6.x"
+project = "popup"
+datestamp = "1266097809"
+

@@ -1,0 +1,100 @@
+#nodeselect-search-form .searching {background-color:red; padding:10px; font-weight:bold; }
+#nodeselect-search-form .no-results {background-color:yellow; padding:10px; font-weight:bold; }
+#nodeselect-search-form .nid {display:none; visibility:hidden; height:0;}
+ul.nodeselect-list {padding-left:1em;}
+
+ul.nodeselect-list li,
+#block-views-aef_nodeselect_content-block_1 .view-content .views-row {
+  list-style-type:square; 
+  padding:.2em 0;
+}
+
+.form-autocomplete {display:block;}
+.dropzoneactive, .sortableactive {background-color:yellow;}
+.dropzonehover, .sortablehover {background-color:orange;}
+
+#block-aef_nodeselect-0 
+{
+/**  position:fixed; 
+  width:300px; 
+  top:20px; 
+  right:10px; */
+  background:#fff; 
+/**  border:3px solid black; 
+  z-index:1000; */
+/**  overflow-y:scroll; */
+  /**max-height:450px;*/
+  height:450px;
+}
+
+#block-aef_nodeselect-0 .content,
+#block-views-aef_nodeselect_content-block_1
+{
+  padding:8px; 
+}
+
+#block-aef_nodeselect-0 .form-item,
+#views-exposed-form-aef-nodeselect-content-block-1 .views-exposed-widget
+{
+  padding:0 0 5px 0; 
+  margin:0;
+  font-size:14px;
+}
+
+#block-aef_nodeselect-0 .form-item .form-radios
+{
+  padding:0 0 5px 0; 
+  margin:0;
+  font-size:14px;
+}
+
+#block-aef_nodeselect-0 .form-item select,
+#block-aef_nodeselect-0 .form-item input,
+#views-exposed-form-aef-nodeselect-content-block-1 .views-exposed-widget select,
+#views-exposed-form-aef-nodeselect-content-block-1 .views-exposed-widget input {
+  font-size:12px;
+}
+
+#views-exposed-form-aef-nodeselect-content-block-1 .views-exposed-widget input {
+  width:250px;
+}
+
+
+#views-exposed-form-aef-nodeselect-content-block-1 .views-exposed-widget input.form-submit {
+  width:auto;
+}
+
+
+
+/*.droppable {border:4px dashed black; font-size:1.em; font-weight:bold; padding:.5em; margin-left:50%; text-align:center;}*/
+.draggable, .sortable {cursor:pointer; -moz-opacity:1; filter:alpha(opacity=100);}
+.nodeselect .form-text {display:inline;} /* normally, textfields are display:block */
+
+
+#ul-nodeselect-results li.unpublished {
+  background-color: #FF0000;
+}
+
+.nodereference{
+	font-weight:bold;
+}
+
+.nodeselect strong {
+	font-weight:bold;
+}
+
+.aef-nodeselect-title {
+  font-size:12px;
+  background-color:#F5F5F7;
+  margin:2px;
+  padding-left:5px;
+}
+
+#nodeselect-toggle-area {
+  font-size:9px;
+  font-weight:normal;
+}
+
+.aef-nodeselect-droppable {
+  display:inline !important;
+}

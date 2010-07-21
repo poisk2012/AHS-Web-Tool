@@ -1,0 +1,145 @@
+<?php
+
+function multi_node_edit_reference_menu() {
+  $items = array();
+  $items['node/%node/refs'] = array(
+    'title' => 'Referenced Nodes',
+    'page callback' => 'multi_node_edit_reference_refs',
+    'page arguments' => array(1),
+    'access callback' => 'multi_node_edit_reference_menu_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+function multi_node_edit_reference_refs($node) {
+  $type = content_types($node->type);
+  foreach ($type['fields'] as $label => $field) {
+    if ($field['module'] == 'nodereference') {
+      return drupal_get_form('multi_node_edit_form', $node->$label, $label);
+    }
+  }
+}
+
+function multi_node_edit_reference_menu_access($node) {
+// Build an admin that checks node types for whether they have node references and then put some extra code in this that checks that variable before returning TRUE.
+  $type = content_types($node->type);
+  foreach ($type['fields'] as $field) {
+    if ($field['module'] == 'nodereference') {
+      if (user_access('edit referenced nodes')) {
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+function multi_node_edit_reference_perm() {
+  return array('edit referenced nodes');
+}
+
+function multi_node_edit_reference_form_alter(&$form, &$form_state, $form_id) {
+  switch($form_id) {
+    case 'multi_node_edit_form':
+    // build the checkbox to remove from story
+    $remove = array(
+      '#type' => 'checkbox', 
+      '#title' => t('Remove'), 
+      '#default_value' => 0,
+      '#description' => t('Remove this from the parent'),
+      '#weight' => 5,
+      '#attributes' => array('class' => 'multi-node-edit-remove-checkbox'),
+    );
+    
+    // Building the select list to move nodes around
+    $total_nodes = count($form['nodes']);
+    $reorder = array(
+      '#type' => 'select', 
+      '#title' => t('Move to position'), 
+      '#default_value' => 0,
+      '#options' => array(),
+      '#description' => t('Move this node to a new possition'),
+      '#weight' => 5,
+      '#attributes' => array('class' => 'multi-node-edit-reorder-dropdown'),
+    );
+    $count = 1;
+    while($count < $total_nodes) {
+      $reorder['#options'][$count] = $count;
+      $count++;
+    }
+ 
+    foreach ($form['nodes'] as $nid_key => $ref_node) {    
+      if(is_numeric($nid_key)) {
+        // Adding reorder classes
+        $form['nodes'][$nid_key]['#attributes'] = array('class' => 'multi-node-edit-order-' . ($form['nodes'][$nid_key]['#weight'] + 1) . ' reorderable');
+        
+        // Adding and Configuring the reorder list per entry
+        $form['nodes'][$nid_key]['form_'. $nid_key]['multi_node_edit_reorder_' . $nid_key] = $reorder;
+        $form['nodes'][$nid_key]['form_'. $nid_key]['multi_node_edit_reorder_' . $nid_key]['#default_value'] = $form['nodes'][$nid_key]['#weight'] + 1;
+        
+        // Adding remove checkbox
+        $form['nodes'][$nid_key]['form_'. $nid_key]['multi_node_edit_remove_' . $nid_key] = $remove;
+        
+        unset($form['nodes'][$nid_key]['form_'. $nid_key]['body_field']['teaser_js']);
+        unset($form['nodes'][$nid_key]['form_'. $nid_key]['body_field']['teaser_include']);
+      }
+    }
+    
+    $form['#after_build'][] = 'multi_node_edit_reference_refs_after_build';
+    $form['#submit'][] = 'multi_node_edit_reference_refs_submit';
+    break;
+  }
+}
+
+function multi_node_edit_reference_refs_after_build($form, $form_state){
+  drupal_add_js(drupal_get_path('module', 'multi_node_edit_reference') .'/multi_node_edit_reference.js', 'module');
+  drupal_add_js(drupal_get_path('module', 'multi_node_edit_reference') .'/jquery.scrollTo-1.4.2-min.js', 'module');
+
+  // re-order the form and hide 'removed' nodes
+  if($form_state['submitted']){
+    foreach($form['nodes'] as $nid_key => $node){
+      if(is_numeric($nid_key)) {
+        $pos = $form_state['values']['nodes'][$nid_key]['form_'. $nid_key]['multi_node_edit_reorder_' . $nid_key]['#value'];
+        $default = $form['nodes'][$nid_key]['form_'. $nid_key]['multi_node_edit_reorder_' . $nid_key]['#default_value'];
+        
+        $form['nodes'][$nid_key]['#weight'] = $pos - 1;
+        $form['nodes'][$nid_key]['#attributes']['class'] = str_replace('multi-node-edit-order-' . $default, 'multi-node-edit-order-' . $pos, $form['nodes'][$nid_key]['#attributes']['class']);     
+      }
+    }
+  }  
+  
+  return $form;
+}
+
+function multi_node_edit_reference_refs_submit($form, &$form_state) {
+  $values = (object) $form_state['values'];
+  $refs = array();
+
+  // process the nodes
+  foreach ($values->nodes as $key => $value) {    
+    // remove any nodes marked for removal (no JS)
+    if(!$value['form_'. $key]['multi_node_edit_remove_' . $key]) {
+      // store the order of the nodes
+      $refs[$key] = $value['form_'. $key]['multi_node_edit_reorder_' . $key];
+    }
+    else {
+      unset($values->nodes[$key]);
+    }
+  }
+  // Re Order
+  asort($refs);
+  
+  // create new node ref array
+  $nids = array_flip($refs);
+  $ref_field = array();
+  foreach ($nids as $nid) {
+    $ref_field[] = array('nid' => $nid);
+  }
+    
+  // Load he parent node
+  $node = node_load(arg(1));
+  
+  $node->{$values->field_id} = $ref_field;
+  node_save($node);
+}

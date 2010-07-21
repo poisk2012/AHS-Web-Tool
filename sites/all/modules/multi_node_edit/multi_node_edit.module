@@ -1,0 +1,226 @@
+<?php
+
+function multi_node_edit_form($form_state, $nodes, $id = NULL) {
+  if (!is_null($id)) {
+    $form['field_id'] = array(
+      '#type' => 'value',
+      '#value' => $id,
+    );
+  }
+  //Get the node that's doing the referencing.
+  module_load_include('inc', 'node', 'node.pages');
+  // Set a container w/ a tree = true so that in our $form_state['values'] we can easily select all nodes being processed, this will also separate nodes individual values like title from each other.
+  $form['nodes'] = array(
+    '#tree' => TRUE,
+  );
+  /**
+   * TODO add in a drupal_get_form($node->type .'_node_form'); below for the sake of adding any js needed for the particular node forms involved.
+   */
+  // Each node that's referenced
+  foreach($nodes as $key => $ref) {
+    //load up our referenced node so we have a fully formed $node object.
+    $ref = node_load($ref['nid']);
+    $form_state = array();
+    $form['nodes'][$ref->nid] = array(
+      '#type' => 'fieldset',
+      '#title' => check_plain($ref->title),
+      '#collapsible' => TRUE,
+      '#tree' => TRUE,
+      '#weight' => $key,
+    );
+    // Get the core form components for this node type.
+    $node_form = node_form($form_state, $ref);
+    foreach (module_implements('form_alter') as $name) {
+      $function = $name .'_form_alter';
+      $function($node_form, $form_state, $ref->type .'_node_form');
+    }
+    // Alter the element_validate hooks to use custom mulit_node_edit funciton
+    $node_form = _multi_node_edit_alter_element_validate($node_form);
+
+    $form['nodes'][$ref->nid]['form_'. $ref->nid] = $node_form;
+    // Unset the individual form's buttons so they can't be submitted except by our buttons.
+    unset($form['nodes'][$ref->nid]['form_'. $ref->nid]['buttons']);
+  }
+  // This is REALLY important, cck fields don't appear to process without this... however I would be careful of putting multiple node types in your reference specifically because of these lines.
+  $form['#field_info'] = array();
+  foreach ($form['nodes'] as $nid_key => $ref_node) {
+    if(is_array($ref_node['form_'. $nid_key]['#field_info'])) {
+      $form['#field_info'] += $ref_node['form_'. $nid_key]['#field_info'];
+    }
+  }
+  $form['#validate'][] = 'multi_node_edit_form_validate';
+  $form['#submit'][] = 'multi_node_edit_form_submit';
+  drupal_set_title(check_plain($node->title) .' references');
+  return system_settings_form($form);
+}
+
+
+/**
+ * Custom hook to find elements that need restructured submit data
+ */
+function _multi_node_edit_alter_element_validate($form) {
+  /**
+   * A list of the form elements that require form_state/post to 
+   * be manipulated to be structured more like a standard node edit 
+   * submit, due to assumptions made about submission structure.
+   **/
+  $needs_restructure = array('date_combo');
+  
+  if ($form['#element_validate'] AND in_array($form['#type'], $needs_restructure)) {
+    $form['#_element_validate'] = $form['#element_validate'];
+    $form['#element_validate'] = array('multi_node_edit_element_validate');
+    $form['value'] = _multi_node_edit_alter_element_validate($form['value']);
+  } 
+  elseif(is_array($form)) {
+    foreach ($form as $key => $element) {
+      if (is_array($element)) {
+        $form[$key] = _multi_node_edit_alter_element_validate($element);
+      }
+    }
+  }
+  
+  return $form;
+}
+
+function _multi_node_edit_parent_traverse($target, $key, $insert  = FALSE) {
+  $result = &$target;
+  foreach ($key as $k) {
+    $result = &$result[$k];
+  } 
+  
+  if($insert) {
+    $result = $insert;
+    return $target;
+  } 
+  else {
+    return $result;
+  }
+}
+
+function multi_node_edit_element_validate($element, &$form_state) {
+  $needs_help = array('date_combo');
+  
+  $node_element = $element;
+  $node_form_state = $form_state;
+  $node_base_key = array();
+  $node_parents = array();
+  
+  $past_fieldname == FALSE;
+  foreach ($element['#parents'] as $key) {
+    if ($key == $element['#field_name'] OR $past_fieldname) {
+      $node_parents[] = $key;
+    }
+    else {
+      $node_base_key[] = $key;
+    }
+  }
+
+  // Modify form_state and element so it feels more like a standard node edit form
+  $node_form_state['values'] =  _multi_node_edit_parent_traverse($form_state['values'], $node_base_key);
+  
+  $node_element['#post'] = $node_element['value']['#post'] =  _multi_node_edit_parent_traverse($node_element['#post'], $node_base_key);
+  $node_element['#parents'] = $node_element['#array_parents'] = $node_element['value']['#array_parents'] = $node_element['value']['#parents'] = $node_parents;
+  
+  // Submit to standard validation
+  foreach($node_element['#_element_validate'] as $function) {
+    $function($node_element, &$node_form_state);
+  }
+  
+  // Reinsert the updated node_form_state into its correct possition
+  $form_state['values'] = _multi_node_edit_parent_traverse($form_state['values'], $node_base_key, $node_form_state['values']);  
+}
+
+function multi_node_edit_form_validate(&$form, &$form_state) {
+  module_load_include('inc', 'node', 'node.pages');
+  $values = (object) $form_state['values'];
+  foreach ($values->nodes as $key => $value) {
+    $node_state['values'] = $value['form_'. $key];
+    foreach ($form['nodes'][$key]['form_'. $key]['#validate'] as $function) {
+      
+      
+      $function($form['nodes'][$key]['form_'. $key], $node_state);
+    }
+  }
+}
+
+function multi_node_edit_form_submit($form, &$form_state) {
+  module_load_include('inc', 'node', 'node.pages');
+  $values = (object) $form_state['values'];
+
+  foreach ($values->nodes as $key => $value) {
+    $node_state = array();
+    $node_state['values'] = $value['form_'. $key];
+    // since we had to use #tree = TRUE to get our nodes separated, this function turns our form_state into something node_form_submit can more easily handle.
+    multi_node_edit_collapse_form_state_values($form['nodes'][$key]['form_'. $key], $node_state);
+    // individual handling for the cck fields as needed.
+    multi_node_edit_cck_form_state_values($form['nodes'][$key]['form_'. $key], $node_state);
+    // should be formatted to work for core's node_form_submit now.
+
+    node_form_submit($form['nodes'][$key]['form_'. $key], $node_state);
+  }
+}
+
+/**
+ * Recursive function to flatten out our form_state values into something node_form_submit can more easily digest.
+ * NOTE: I haven't tested this beyond one level, so I'm not sure if the whole $starting_key']['$key thing will work,
+ * but it doesn't seem to matter for most nodes.  Custom node types NOT using cck, might be problematic as well.
+ */
+
+function multi_node_edit_collapse_form_state_values($form, &$form_state, $starting_key = NULL) {
+  if (is_null($starting_key)) {
+    foreach ($form_state['values'] as $key => $value) {
+      if (is_array($value)) {
+        unset($form[$key]['#post']);
+        if ((!isset($form[$key]['#type']) || $form[$key]['#type'] == 'fieldset')) {
+          if ($form[$starting_key][$key]['#tree'] !== TRUE) {
+            if ($key != 'taxonomy') {
+              $key_parts = explode('_', $key);
+              if ($key_parts[0] != 'field') {
+                multi_node_edit_collapse_form_state_values($form, $form_state, $key);
+                //unset($form_state['values'][$key]);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  else {
+    if(is_array($form_state['values'][$starting_key])) {
+      foreach ($form_state['values'][$starting_key] as $key => $value) {
+        if (is_array($value)) {
+          unset($form[$starting_key][$key]['#post']);
+          if (!isset($form[$starting_key][$key]['#type']) || $form[$starting_key][$key]['#type'] == 'fieldset') {
+            if ($form[$starting_key][$key]['#tree'] !== TRUE) {
+              multi_node_edit_collapse_form_state_values($form, $form_state['values'], $starting_key ."']['". $key);
+              //unset($form_state['values'][$starting_key][$key]);
+            }
+            else {
+              $form_state['values'][$key] = $form_state['values'][$starting_key][$key];
+              multi_node_edit_collapse_form_state_values($form, $form_state['values'], $starting_key ."']['". $key);
+            }
+          }
+        }
+        else {
+          $form_state['values'][$key] = $form_state['values'][$starting_key][$key];
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Designed to find handlers for each widget type.  Might need an extra level of handling for the various formats a given module could provide.
+ * I'd do this by looking through $value['widget'] and see if there's extra info there you could namespace with.
+ */
+
+function multi_node_edit_cck_form_state_values($form, &$form_state) {
+  if(is_array($form['#field_info'])) {
+    foreach ($form['#field_info'] as $key => $value) {
+      $function = 'multi_node_edit_cck_'. $value['widget']['module'] .'_handler';
+      if (function_exists($function)) {
+        $function($form_state['values'][$key]);
+      }
+    }
+  }
+}

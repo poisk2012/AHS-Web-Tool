@@ -1,0 +1,270 @@
+<?php
+// $Id: aef_nodeselect.module,v 1.2 2010/01/29 11:20:01 ndeschildre Exp $
+/**
+ * @file
+ * Allow us to use a more powerful interface to search
+ * and insert nodes into CCK Nodereference fields.
+ */
+
+/**
+ * Implementation of hook_init()
+ */
+function aef_nodeselect_init() 
+{
+  // Workaround until we find how to include JS/CSS files included in AHAH stuff
+  // This will add the Flag drupal behavior.
+  if(module_exists('flag'))
+  {
+    drupal_add_js(drupal_get_path('module', 'flag') .'/theme/flag.js');
+  }
+
+  // Add the necessary CSS and JS
+  $path = drupal_get_path('module', 'aef_nodeselect');
+  drupal_add_css($path .'/aef_nodeselect.css');
+  if(module_exists('jquery_ui'))
+    jquery_ui_add(array('ui.draggable', 'ui.droppable'));
+  drupal_add_js($path .'/aef_nodeselect.js');
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function aef_nodeselect_perm() {
+  return array('administer aef_nodeselect', 'use aef_nodeselect');
+}
+
+/**
+ * Implementation of hook_help().
+ *
+ */
+function aef_nodeselect_help($section) {
+  switch ($section) {
+    case 'admin/settings/aef_nodeselect':
+      return '<p>Select below CCK fields (content type nodereference) you want to replace
+              by NodeSelect fields. These fields, which are usually evidenced by a text field, 
+              will be replaced by a list AJAX in , which you can add or rearrange the elements while the drag & drop</p>
+              <p><strong>IMPORTANT</strong>. The selected fields will be replaced in all forms where they appear.</p>';
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ *
+ */
+function aef_nodeselect_menu() {
+	$items = array();
+	$items['admin/settings/nodeselect'] = array(
+		'title' => 'NodeSelect', 
+		'description' => 'Replaces the classic fields of a CCK Nodereference by a more flexible AJAX interface', 
+		'page callback' => 'drupal_get_form', 
+		'page arguments' => array('aef_nodeselect_settings'), 
+		'access arguments' => array('administer aef_nodeselect'), 
+	);
+  return $items;
+}
+
+/**
+ * Implementation of hook_views_api
+ */
+function aef_nodeselect_views_api() {
+  return array(
+    'api' => 2, 
+    'path' => drupal_get_path('module', 'aef_nodeselect') .'/views'
+  );
+}
+
+/**
+ * Implementation of hook_theme_registry_alter.
+ * Make the theme engine use page-node-nodeselect_preview_notheme.tpl.php &&
+ * page-node-edit-nodeselect_preview_notheme.tpl.php of this module directory.
+ */
+function aef_nodeselect_theme_registry_alter(&$theme_registry)
+{
+	$modulepath = drupal_get_path('module', 'aef_nodeselect');
+
+	//Add this theme to the list of path to look for page templates
+	$originalpath = array_shift($theme_registry['page']['theme paths']);
+	array_unshift($theme_registry['page']['theme paths'], $originalpath, $modulepath . "/theme");
+}
+
+
+/**
+ * Implementation of CCK's hook_field_formatter_info().
+ */
+function aef_nodeselect_field_formatter_info() {
+	$formatters = array(
+		'aef_nodeselect_preview' => array(
+			'label' => t('Global: Search result entry for nodeselect'),
+			'field types' => array('nodereference'),
+			'description' => t('Preview for search results.'),
+		),
+	);
+	return $formatters;
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function aef_nodeselect_theme($existing, $type, $theme, $path)
+{
+	return array(
+    //Formatter aef_nodeselect_preview
+		'aef_nodeselect_formatter_aef_nodeselect_preview' => array(
+			'arguments' => array('element' => null),
+			'file' => 'aef_nodeselect_formatter.inc',
+		),
+		'aef_nodeselect_preview' => array(
+			'arguments' => array('node' => null),
+      'template' => 'aef_nodeselect_preview',
+      'path' => drupal_get_path('module', 'aef_nodeselect') . '/theme',
+		),
+  );
+}
+
+/**
+ * Implementation of hook_preprocess()
+ */
+function aef_nodeselect_preprocess_aef_nodeselect_preview(&$variables)
+{
+  $content_types = content_types(); // All content types
+
+  $variables['title']      = l('<span class="nodereference">' . check_plain($variables['node']->title) . ' [nid:' . $variables['node']->nid . ']</span>', 'node/' . $variables['node']->nid . '/aef_embedded_edit', array('attributes' => array('class' => 'nodeselect-node'), 'html' => true));
+  $variables['date']      = format_date($variables['node']->created);
+  $variables['name']      = theme('username', $variables['node']);
+  $variables['node_type'] = $content_types[$variables['node']->type]['name'];
+  $variables['edit_link'] = l('edit', 'node/' . $variables['node']->nid . '/edit/aef_embedded_edit', array('attributes' => array('class' => 'nodeselect-node')));
+  $variables['edit_new_window_link'] = l('edit in new window', 'node/' . $variables['node']->nid . '/edit', array('attributes' => array('target' => '_blank')));
+  if(module_exists('flag'))
+  {
+    $variables['bookmark_link'] = flag_create_link('bookmarks', $variables['node']->nid);
+  }
+
+}
+
+/**
+ * Implementation du hook_form_alter().
+ *
+ */
+function aef_nodeselect_form_alter(&$form, &$form_state, $form_id) {
+
+  // If we are in a node edit form, and not in the admin pages
+  if ((strpos($form['form_id']['#value'], '_node_form') !== false ||
+       strpos($form_state['post']['form_id'], '_node_form') !== false) || arg(0) == 'admin') {
+    // Create a JS array containing the list of nodereference fields that should be used
+    // as a drop target for Nodeselect.
+    // These fields can be selected in the admin panel
+    $fields = aef_nodeselect_get_fields();
+    $fields = '["'. implode('", "', $fields) .'"];';
+    $data = 'var aef_nodeselect_fields = '. $fields;
+
+    $aef_nodeselect_display_edit_link = variable_get('aef_nodeselect_display_edit_link', array('display_edit_link'=>'display_edit_link'));
+    $data .= 'var aef_nodeselect_display_edit_link = "'.$aef_nodeselect_display_edit_link['display_edit_link'].'";';
+
+    $aef_nodeselect_display_view_link = variable_get('aef_nodeselect_display_view_link', array('display_view_link'=>'display_view_link'));
+    $data .= 'var aef_nodeselect_display_view_link = "'.$aef_nodeselect_display_view_link['display_view_link'].'";';
+    drupal_add_js($data, $type = 'inline');
+
+  }
+}
+
+/**
+ * Callback menu -- configuration form in the admin
+ *
+ * Allow us to select the nodereference fields that should be used
+ * as drop target by nodeselect.
+ *
+ */
+function aef_nodeselect_settings() {
+  $form = array();
+  $fields = content_fields(); // All CCK fields
+  $options = array();
+  $content_types = content_types(); // All content types
+  foreach ($fields as $field) {
+    if ($field['type'] == 'nodereference') {
+      // Fetch all the content types using the current CCK field
+      $result_types = array();
+      foreach ($content_types as $content_type) {
+        if(array_key_exists($field['field_name'] , $content_type['fields']))
+          $result_types[] = l($content_type['name'], 'admin/content/node-type/'. $content_type['url_str'] .'/fields');
+      }
+      $options[$field['field_name']] = $field['field_name'] .' <small>('.t('used in').' '. implode(', ', $result_types) .')</small>';
+    }
+  }
+  $form['aef_nodeselect_fields'] = array(
+    '#type' => 'checkboxes', 
+    '#title' => t('Nodereference fields to replace'), 
+    '#options' => $options, 
+    '#default_value' => variable_get('aef_nodeselect_fields', array()), 
+  );
+
+  // display edit_link
+  $options_edit_link = array();
+  $content_type = content_types();
+  $options_edit_link["display_edit_link"] = t("Display 'Edit' link");
+  
+  $form['aef_nodeselect_display_edit_link'] = array(
+    '#type' => 'checkboxes', 
+    '#title' => t('Display "Edit" link? '), 
+    '#options' => $options_edit_link, 
+    '#description' => t('If yes, a Edit link will be put near the nodereference, allowing you to edit it in a embedded edit window.'),
+    '#default_value' => variable_get('aef_nodeselect_display_edit_link', array('display_edit_link'=>'display_edit_link')), 
+  );
+
+  // display view_link
+  $options_view_link = array();
+  $content_type = content_types();
+  $options_view_link["display_view_link"] = t("Display 'View' link");
+  
+  $form['aef_nodeselect_display_view_link'] = array(
+    '#type' => 'checkboxes', 
+    '#title' => t('Show "View" link? '), 
+    '#options' => $options_view_link, 
+    '#description' => t('If yes, a View link will be put near the nodereference, allowing you to preview it in a embedded edit window.'),
+    '#default_value' => variable_get('aef_nodeselect_display_view_link', array('display_view_link'=>'display_view_link')), 
+  );
+
+
+  // number of node to display
+  $form['aef_number_node'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('Number of node to display '), 
+    '#default_value' => variable_get('aef_number_node', 40), 
+  );
+
+  //If workflow, select which workflow to display
+  if(module_exists('workflow'))
+  {
+    $form['aef_nodeselect_workflow'] = array(
+      '#type' => 'select', 
+      '#title' => t('The workflow to use for the search '),
+      '#options' => array('' => t('- none -')) + workflow_get_all(),
+      '#default_value' => variable_get('aef_nodeselect_workflow', ''), 
+    );
+  }
+
+  return system_settings_form($form);
+}
+
+/**
+ * Return the list of CCK nodereference fields that will be used by Nodeselect
+ * 
+ * Note: we are not directly using the value of variable_get('nodeselect_fields', array())
+ * because it does not have the right format:
+ *   Array (
+ *     [field_node1] => field_node1
+ *     [field_node4] => field_node4
+ *     [field_node6] => field_node6
+ *     [field_node2] => 0
+ *     [field_node3] => 0 
+ *   )
+ */
+function aef_nodeselect_get_fields() {
+  $fields = array();
+  $nodeselect_fields = variable_get('aef_nodeselect_fields', array());
+  foreach ($nodeselect_fields as $field) {
+    if ($field) {
+      $fields[$field] = $field;
+    }
+  }
+  return $fields;
+}

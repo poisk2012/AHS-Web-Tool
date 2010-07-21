@@ -1,0 +1,12 @@
+; $Id: content_moderation_workflow_ui.info,v 1.1.2.2 2010/05/01 12:53:19 eugenmayer Exp $
+project = "content_moderation_workflow_ui"
+core = "6.x"
+name = Content Moderation Workflow UI
+description = Content Moderation
+package = "Drupal Wiki"
+; Information added by drupal.org packaging script on 2010-05-01
+version = "6.x-1.4"
+core = "6.x"
+project = "content_moderation"
+datestamp = "1272718816"
+

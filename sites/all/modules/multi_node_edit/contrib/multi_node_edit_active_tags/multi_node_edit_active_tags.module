@@ -1,0 +1,31 @@
+<?php
+
+function multi_node_edit_active_tags_form_alter(&$form, &$form_state, $form_id) {
+  switch($form_id) {
+    case 'multi_node_edit_form':
+      foreach ($form['nodes'] as $nid_key => $ref_node) {    
+        if(is_numeric($nid_key)) {
+          if (isset($form['nodes'][$nid_key]['form_'. $nid_key]['taxonomy']['tags'])) {
+            $form['nodes'][$nid_key]['form_'. $nid_key]['#after_build'][] = 'multi_node_edit_active_tags_node_form_attach';
+          }
+        }
+      }
+      break;
+  }
+}
+      
+// a near copy of active_tags_node_form_attach() from active_tags.module except the $settings[] = "#id" line has been altered to match what our taxonomy terms will end up being.
+function multi_node_edit_active_tags_node_form_attach($form, $form_state) {
+  $settings = array();
+  $nid = $form['nid']['#value'];
+  foreach ($form['taxonomy']['tags'] as $id => $values) {
+    if (variable_get('active_tags_'. $id, 0) == 1) {
+      $settings[] = "#edit-nodes-$nid-form-$nid-taxonomy-tags-$id-wrapper";
+    }
+  }
+  // Only load files if we found active tags enabled fields.
+  if (!empty($settings)) {
+    active_tags_enable_widget($settings, $form_state['submitted']);
+  }
+  return $form;
+}

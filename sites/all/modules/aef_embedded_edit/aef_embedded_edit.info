@@ -1,0 +1,16 @@
+; $Id: aef_embedded_edit.info,v 1.1 2009/11/23 16:04:36 ndeschildre Exp $
+name = "Embedded Edit"
+description = "Allow one to edit or view a node within another page, using a kind of lightbox."
+version = "6.x-1.0"
+package = AEF
+core = 6.x
+dependencies[] = ajax
+
+dependencies[] = aef_utilities
+
+; Information added by drupal.org packaging script on 2009-12-07
+version = "6.x-1.1"
+core = "6.x"
+project = "aef_embedded_edit"
+datestamp = "1260179403"
+

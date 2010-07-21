@@ -1,0 +1,189 @@
+<?php
+// $Id: aef_embedded_edit.module,v 1.2 2009/12/07 09:45:49 ndeschildre Exp $
+
+/**
+ * @file
+ * Provides quick edit and implements its integration into AEF node select
+ */
+
+/**
+ * Implementation of hook_init()
+ */
+function aef_embedded_edit_init() {
+  drupal_add_css(drupal_get_path('module', 'aef_embedded_edit') .'/aef_embedded_edit.css');
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function aef_embedded_edit_menu() {
+  $items = array();
+  $items['node/%node/edit/aef_embedded_edit'] = array(
+    'page callback' => 'node_page_edit',
+    'page arguments' => array(1),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'file' => 'node.pages.inc',
+    'file path' => drupal_get_path('module', 'node'),
+    'type' => MENU_CALLBACK,
+  );
+
+  if(module_exists('revisioning'))
+  {
+    $items['node/%node/edit/aef_embedded_edit']['access callback'] = '_revision_tasks_menu_access_callback';
+    $items['node/%node/edit/aef_embedded_edit']['access arguments'] = array('edit current', 1);
+  }
+
+
+  $items['node/%node/aef_embedded_edit'] = array(
+    'page callback' => 'node_view',
+    'page arguments' => array(1),
+    'access callback' => 'node_access',
+    'access arguments' => array('view', 1),
+    'type' => MENU_CALLBACK,
+  );
+
+  if(module_exists('revisioning'))
+  {
+    $items['node/%node/aef_embedded_edit']['access callback'] = '_revision_tasks_menu_access_callback';
+    $items['node/%node/aef_embedded_edit']['access arguments'] = array('view current', 1);
+  }
+
+
+  foreach (node_get_types('types', NULL, TRUE) as $type) {
+    $type_url_str = str_replace('_', '-', $type->type);
+    $items['aef_embedded_edit/node/add/' . $type_url_str] = array(
+      'title' => drupal_ucfirst($type->name),
+      'title callback' => 'check_plain',
+      'page callback' => 'node_add',
+      'page arguments' => array(3),
+      'access callback' => 'node_access',
+      'access arguments' => array('create', $type->type),
+      'description' => $type->description,
+      'file' => 'node.pages.inc',
+      'file path' => drupal_get_path('module', 'node'),
+      'type' => MENU_CALLBACK,
+    );
+  }
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme_registry_alter.
+ * Make the theme engine use page-node-nodeselect_preview_notheme.tpl.php &&
+ * page-node-edit-nodeselect_preview_notheme.tpl.php of this module directory.
+ */
+function aef_embedded_edit_theme_registry_alter(&$theme_registry)
+{
+  $module_path = drupal_get_path('module', 'aef_embedded_edit');
+
+  // Add this theme to the list of path to look for page templates
+  $original_path = array_shift($theme_registry['page']['theme paths']);
+  array_unshift($theme_registry['page']['theme paths'], $original_path, $module_path . "/theme");
+}
+
+/**
+ * Implementation of hook_footer().
+ */
+function aef_embedded_edit_footer($main = 0) {
+  return theme('aef_embedded_edit_area');
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function aef_embedded_edit_theme() {
+  return array(
+    'aef_embedded_edit_area' => array(
+      'arguments' => array(),
+    ),
+  );
+}
+
+/**
+ * Display the embedded edit area.
+ */
+function theme_aef_embedded_edit_area() {
+  $html = "";
+  $html .= '<div id="aef-embedded-edit-area">';
+  $html .= '<div class="aef-embedded-edit-area-header" style="text-align:right;"><a href="#" id="aef-embedded-edit-area-preview-close">' . t('Close') . '</a></div><iframe id="aef-embedded-edit-area-iframe">';
+  $html .= '</iframe>';
+  $html .= '<div id="aef-embedded-edit-loading"></div>';
+  $html .= '</div>';
+  $html .= '<div id="aef-embedded-edit-overlay"></div>';
+  return $html;
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function aef_embedded_edit_form_alter(&$form, $form_state, $form_id) {
+  if ($form['#id'] == 'node-form' && (arg(3) == 'aef_embedded_edit' || (arg(0) == 'aef_embedded_edit'))) {
+    $form['#ajax'] = array(
+      'enabled' => TRUE
+    );
+  }
+  elseif ($form['#id'] == 'node-form' || $form_id == 'content_add_more_js') {
+    $settings = variable_get('aef_embedded_edit', array());
+    $type_name = $form['#node']->type ? $form['#node']->type : arg(2);
+    $content_types = content_types();
+    if (empty($settings[$type_name])) {
+      return;
+    }
+    foreach ($settings[$type_name] as $field_name => $node_type) {
+      $type_full_name = $content_types[$settings[$type_name][$field_name]]['name'];
+      if (isset($settings[$type_name][$field_name]) && $settings[$type_name][$field_name] != 'none' && $settings[$type_name][$field_name] != '') {
+        $content_type_url = $content_types[$settings[$type_name][$field_name]]['url_str'];
+        $form[$field_name]['#suffix'] .= '<div style="display:inline">'.l(t('Create new @node_type', array('@node_type' => t("$type_full_name"))), 'aef_embedded_edit/node/add/'. $content_type_url, array('attributes' => array('class' => 'create_new_button', 'onclick' => 'return false;', 'field' => $field_name)) ).'</div>';
+      }
+    }
+  }
+  elseif ($form_id == 'content_field_edit_form') {
+    if ($form['#field']['type'] == 'nodereference') {
+      $settings = variable_get('aef_embedded_edit', array());
+
+      $options = array('none' => t('None'));
+      $content_types = content_types();
+      foreach ($content_types as $name => $info) {
+        $options[$name] = $info['name'];
+      }
+      $form['aef_embedded_edit'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'AEF embedded edit options',
+      '#weight' => 0.004
+      );
+      $form['aef_embedded_edit']['aef_embedded_edit_node_type'] = array(
+        '#type' => 'select',
+        '#title' => t('New node type'),
+        '#description' => t('Select node type you will create and populate with this nodereference'),
+        '#options' => $options,
+        '#default_value' => $settings[$form['#field']['type_name']][$form['#field']['field_name']],
+      );
+      $form['#submit'][] = 'aef_embedded_edit_field_type_submit';
+    }
+  }
+}
+
+/**
+ * Additional submit for field edit form. Saves AEF embedded edit preferences
+ */
+function aef_embedded_edit_field_type_submit($form, &$form_state) {
+  $settings = variable_get('aef_embedded_edit', array());
+  $settings[$form['#field']['type_name']][$form['#field']['field_name']] = $form_state['values']['aef_embedded_edit_node_type'];
+  variable_set('aef_embedded_edit', $settings);
+}
+
+function aef_embedded_edit_preprocess_page(&$variables) {
+  drupal_add_js(drupal_get_path('module', 'aef_embedded_edit') .
+    '/aef_embedded_edit.js', 'theme');
+  return TRUE;
+}
+
+function aef_embedded_edit_nodeapi($node, $op) {
+  if ($op == 'insert' || $op == 'externodes_insert') {
+
+    $five = time() + 300; // 5 minutes in the future.
+    setcookie("EENid", $node->nid, $five, '/');
+    setrawcookie("EETitle", rawurlencode($node->title), $five, '/');
+  }
+}

@@ -1,0 +1,49 @@
+#aef-embedded-edit-area  {
+  position:fixed;
+  right:10px;
+  top:20px;
+  border:1px solid #696969;
+  width:98%;
+  height:400px;
+  background-color:white;
+  z-index:1001;
+  display:none;
+  overflow:hidden;
+  height:93%;
+}
+
+.aef-embedded-edit-area-header {
+  background-color:#F5F5F7;
+  margin:2px;
+  font-size:12px;
+  height:3%;
+}
+
+#aef-embedded-edit-area iframe {
+  border:0px solid;
+  width:100%;
+  height:96%;
+}
+
+#aef-embedded-edit-loading {
+  background: url(theme/images/loading.gif) no-repeat 50% 50%;
+  width:100%;
+  height:96%;
+  display:none;
+  position:absolute;
+  left:0px;
+  bottom:0px;
+  background-color:white;
+}
+
+#aef-embedded-edit-overlay {
+  display:none;
+  position:fixed;
+  left:0px;
+  top:0px;
+  width:100%;
+  height:100%;
+  background-color:black;
+  opacity:0.75;
+  filter: alpha(opacity = 75);
+}
