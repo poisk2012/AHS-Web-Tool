@@ -161,6 +161,7 @@ function revisioning_menu() {
     'tab_parent' => 'node/%/revisions',
   );
   // Edit revision local subtask
+  /*
   $items['node/%node/revisions/%vid/edit'] = array(
     'title' => 'Edit',
     'load arguments' => array(3),
@@ -173,7 +174,7 @@ function revisioning_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => -7,
     'tab_parent' => 'node/%/revisions',
-  );
+  );*/
   // Publish revision local subtask
   $items['node/%node/revisions/%vid/publish'] = array(
     'title' => 'Publish this',
@@ -184,7 +185,7 @@ function revisioning_menu() {
     'access arguments' => array('publish revisions', 1),
     'type' => MENU_LOCAL_TASK,
     'weight' => -4,
-    'tab_parent' => 'node/%/revisions',
+    'tab_parent' => 'node/%/',
   );
   // Unpublish node local subtask
   $items['node/%node/revisions/%vid/unpublish'] = array(
@@ -704,6 +705,7 @@ function _revisioning_view_edit_access_callback($op, $node) {
     if ($load_op == REVISIONING_LOAD_LATEST && $vid == revisioning_get_latest_revision_id($node->nid)) {
       // Suppress 'View latest' and 'Edit latest' primary tabs when viewing latest
       return FALSE;
+	  
     }
   }
   if ($load_op == REVISIONING_LOAD_LATEST) {
@@ -807,7 +809,6 @@ function _revisioning_edit($node) {
   drupal_set_title(check_plain($node->title));
   return drupal_get_form($node->type .'_node_form', $node);
 }
-
 /**
  * Callback for the primary View and Edit tabs.
  * @param $node

@@ -112,7 +112,7 @@ function revisioning_publish_confirm_submit($form, &$form_state) {
   _revisioning_publish_revision($nid, $vid);
   drupal_set_message(t('Revision has been published.'));
   // Redirect to the same page as unpublish and revert
-  $form_state['redirect'] = "node/$nid/revisions";
+  $form_state['redirect'] = "node/$nid";
 }
 
 /**
@@ -257,7 +257,7 @@ function _revisioning_form_submit($form, &$form_state) {
   // Don't redirect when creating new node or when the displayed vid is the current
   if (!empty($nid) && ($vid = revisioning_get_latest_revision_id($nid)) &&
     $vid != node_tools_get_current_node_revision_id($nid)) {
-      $form_state['redirect'] = "node/$nid/revisions/$vid/view";
+      $form_state['redirect'] = "node/$nid";
   }
 }
 

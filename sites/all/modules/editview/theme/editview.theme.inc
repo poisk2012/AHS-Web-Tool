@@ -92,7 +92,7 @@ function theme_editview_node_form($form) {
     $row[] = $cell;
   }
   $buttons = drupal_render($form['buttons']['submit']);
-  $buttons .= drupal_render($form['buttons']['delete']) .'<span style="display: none;">'. drupal_render($form) .'</span>'."\n";
+  $buttons .= drupal_render($form['buttons']['delete']) .'<span style="display: inline;">'. drupal_render($form) .'</span>'."\n";
   $handler = $view->style_plugin;
   $active = !empty($handler->active) ? $handler->active : '';
   $order = !empty($handler->order) ? $handler->order : 'asc';

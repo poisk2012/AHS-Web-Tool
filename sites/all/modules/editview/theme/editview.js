@@ -1,7 +1,7 @@
 // $Id: editview.js,v 1.1 2009/02/17 00:39:02 agileware Exp $
 
 Drupal.behaviors.editview = function (context) {
-  $('form', context).each(Editview.formCapture);
+  $('form.editview-use-ajax', context).each(Editview.formCapture);
 };
 
 var Editview = Editview || {

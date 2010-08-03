@@ -139,6 +139,8 @@ function editview_node_form(&$form_state, $node, $view, $order, $uri) {
   $form['#theme'] = 'editview_node_form';
   $form['#cache'] = TRUE;
   $form['#action'] = $uri;
+  // Enable and disable ajax
+  $form['#attributes'] = $view->use_ajax ? array('class' => 'editview-use-ajax') : '';
   return $form;
 }
 
