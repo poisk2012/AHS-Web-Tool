@@ -791,10 +791,95 @@ padding-right:10px;
   
   
   
-  /*custom mods*/
+  /*************custom mods**************/
+ 
+/*div.messages{display:none;}
+.section-node div.tabs .secondary {display:none;}*/
   
-  div#sidebar-left-inner div.block h2{font-size:1em; font-weight:normal; background-color:#eee;}
-  div#sidebar-left-inner div.block {border: 1px solid #eee; padding:3px;}
+  div#page-inner{border:1px solid #eee;}
+  div#header{padding:0;}
+  div#sidebar-left{margin-left:-1px;}
+  div#content-header{margin-left:13px;}
+  
+  #page{font-size:0.6em;}
+  
+  .node-unpublished div.unpublished {display:none;}
+  
+  .field-field-data-review-level{display:none;}
+  
+  /*front pages*/
+  div#sidebar-left-inner {margin:0;}
+  div#sidebar-left-inner div.block h2{font-size:1em; font-weight:normal; background-color:#eee;padding:1px 3px;}
+  div#sidebar-left-inner div.block {border: 1px solid #eee;}
+  div#sidebar-left-inner div.content{padding:3px;}
+  
+  /*breadcrumbs*/
+  
+  .breadcrumb {background-color:#eee;margin:0;padding-left:3px;padding-top:2px;height:13px;}
+  
+  /*login block*/
+
+#block-user-0 div{margin-left: auto;margin-right: auto;text-align:center; background-color:#eee;}
+#block-user-0 h2 {display:none;}
+#block-user-0 .form-item {display:inline;}
+#block-user-0 label {display:inline;}
+#block-user-0 input {display:inline;font-size:1em;margin-right:10px;}
+#block-user-0 .item-list {display:inline;}
+#block-user-0 .item-list ul{display:inline;}
+#block-user-0 .item-list li{display:inline;padding: 0 10px;}
+ 
+ /*user navigation block*/
+
+ #block-user-1 div{text-align:right; background-color:#eee; height:13px; padding-top:1px;padding-bottom:1px}
+ #block-user-1 h2 {display:inline; font-size:1em;}
+  #block-user-1 .content {display:inline;}
+  #block-user-1 .content ul{display:inline;}
+  #block-user-1 .content li{display:inline;padding: 0 10px;}
+  
+  /*title menu*/
+  #block-menu-menu-title{border-bottom:1px solid #eee;margin:0;padding-bottom:1.3em;}
+  #block-menu-menu-title h2{font-size:2em;text-transform: uppercase; letter-spacing:.1em; font-family:sans-serif;font-weight:normal;}
+  #block-menu-menu-title .content{margin-top:3px;}
+  #block-menu-menu-title ul{display:inline;padding:0;}
+  #block-menu-menu-title li{display:inline; padding-right:30px;padding-left:30px;font-weight:bold;}
+  #block-menu-menu-title a.active{color:blue;}
+  
+  /*footer*/
+  #footer{padding-top:30px;padding-right:10px;text-align:right;font-size:.9em; color:#aaa;}
+   
+
+   /*revisions pending block*/
+   #block-views-Main_Field_Pending-block_1 {border:2px solid red;}
+   #block-views-Main_Field_Pending-block_1 .views-field-field-back-ref-nid div {text-align:right;}
+  #block-views-Main_Field_Pending-block_1 .views-field-field-back-ref-nid label {display:none;}
+  #block-views-Main_Field_Pending-block_1 .views-field-field-back-ref-nid .field-label {display:none;}
+   #block-views-Main_Field_Pending-block_1 .views-field-field-back-ref-nid h2 {font-size:1em;font-weight:normal;}
+   #block-views-Main_Field_Pending-block_1 .views-field-field-back-ref-nid {background:#eee;border-bottom:1px solid #ddd;}
+   
+   /*field-type menu in property record pages*/
+   #field-type-menu{margin-right:-3px; border:1px solid #aaa;}
+   #field-type-menu td{background-color:#fff;text-align:center;width:100px;padding:3px 18px;border:1px solid #eee;}
+   #field-type-menu td:hover{background-color:#eee}
+   #field-type-menu td.active a{color:#aaa;}
+   
+   
+   /*gmaps lable*/
+   div.gmapnodelabel .title {font-size:1em;}
+   div.gmapnodelabel .field-content {display:inline;}
+   div.gmapnodelabel .views-field-field-current-name-value label{display:none;}
+   div.gmapnodelabel .views-field-field-current-use-primary-ref-nid label {display:none;}
+   div.gmapnodelabel .field-field-status-ref .field-label {display:none;}
+   
+   /*browse page*/
+   div.view-Browse div {display:inline;}
+   div.view-Browse .meta {display:none;}
+      div.view-Browse label {display:none;}
+	  div.view-Browse .field-label {display:none;}
+	  div.view-Browse .field-label-inline-first {display:none;}
+	  div.view-Browse h2 {font-size: 1em; font-weight:normal;}
+	  div.view-Browse .node-inner {padding-bottom:5px; display:block; border: 1px solid #eee;}
+	  div.view-Browse .field-field-prop-type .field-item, div.view-Browse span.field-content {display:block}
+	  div.view-Browse .views-field-field-current-name-value .field-content {font-weight:bold; float:right;position:relative;bottom:12px;}
   
   /*pager under my published contribtions*/
   .item-list .pager {margin:0; padding:0;}
@@ -810,7 +895,7 @@ padding-right:10px;
 	 table.views-table th.views-field-field-geog-lgl-descrp-value 		{width:200px;}
 	 
 	/*field revisions view*/
-	div#content-bottom {padding: 5px; border: 2px solid #eee;}
+	#content-bottom {padding:3px;margin:0 -1px 0 13px;}
 	div.view-test-revisions-field div.views-row {border: 1px solid #eee; margin-bottom:5px;}
 	div.node-type-property h3 {display:none;}
 	div#content-header h1.title{display:none;}
@@ -819,7 +904,6 @@ padding-right:10px;
 	table.data_title td.tid{color:#888;width:70px;text-align: right;vertical-align: top;}
 	div.field-content td.data-title, span.field-content td.data-title{color:#888; width:250px;vertical-align: top; padding-right:5px; text-align:right;}
 	span.views-field-title table {background:#eee;}
-	div#header{padding:20px;}
 	
 	div.views-field-view-node{margin-top:10px;}
 	 div.node-inner div.meta {text-align: right;}
@@ -831,7 +915,7 @@ padding-right:10px;
 	 div.field-label {display:inline; color:#ddd; font-weight:none;}
 	 div.field-items {display:inline;}
 	 div.meta{display:none;}
-	 div.messages{display:none;}
+	 /*div.messages{display:none;}*/
 	 
 	 
 	 div.view-test-revisions-field div.views-row {border: 1px solid #eee; margin-bottom:5px;}
@@ -841,14 +925,19 @@ padding-right:10px;
 	 /*div.node-form select, div.node-form textarea, div.node-form input{font-size:11px;}*/
 	 /*div.node-form label{font-weight:none;vertical-align:top;padding:0px;padding-bottom:4px; margin-left:130px;}*/
 	 
+	 .section-node-edit .form-item label {display:inline;}
+	 
 	 .node-form .form-text{display:inline;}
 	 div.node-form textarea{width:289px;}
+	 div.node-form {border:2px solid red;padding:5px;}
+
+	 /*div#edit-field-sources-0-value-wrapper {margin-left:203px;}*/
+	 div#edit-field-sources-0-value-1-wrapper {margin-left:203px;}
+	 div#edit-field-sources-0-value-wrapper label{margin:0 5px 5px 0;}
+	  div#edit-field-sources-0-value-1-wrapper label{margin:0 5px 5px 0;}
+	 div#edit-field-sources-0-value-wrapper textarea{font-size:1em;}
+	 div#edit-field-sources-0-value-1-wrapper textarea{font-size:1em;}
 	 
-	 div#edit-field-geog-lgl-descrp-0-value-wrapper input{width:289px;}
-	 div#edit-field-geog-lgl-descrp-0-value-wrapper label{background:#eee;padding-right:143px;padding-bottom:5px; margin:0;}
-	 div#edit-field-geog-lgl-descrp-0-value-wrapper{display:block;}
-	 div#edit-field-sources-0-value-wrapper {margin-left:203px;}
-	 div#edit-field-sources-0-value-wrapper label{margin:0;}
 	 div#edit-taxonomy-1-wrapper{margin-left:134px;}
 	 div#edit-field-back-ref-nid-nid-wrapper{display:block;margin-left:152px;}
 	 div#edit-field-back-ref-nid-nid-wrapper label{margin:0;}
@@ -856,7 +945,7 @@ padding-right:10px;
 	 div#edit-field-data-review-level-value--wrapper label {margin:0;}
 	 div#edit-field-data-review-level-value-2-wrapper label {margin:0;}
 	 input#edit-preview, input#edit-delete{display:none;}
-	 div.node-form input.form-submit{margin-left:503px;margin-bottom:10px;}
+	 div.node-form input.form-submit{margin-left:490px;}
 	 
 	  div.node-form div.authored{text-align:right;margin-left:190x;}
 	  div.node-form div.authored legend {display:none;}
@@ -866,9 +955,87 @@ padding-right:10px;
 	  div.node-form div.authored input{width:283px;}
 	  div.node-form div.options {margin-left:190px;}
 	  
-	 .section-node div.tabs{}
+	 .section-node div.tabs{margin: 0 0 2px;padding:3px;}
 	 .section-node-edit div.tabs{}
 	 
+	 
+	 
+	/*custom publish/delete tabs*/
+	/*first, hide old tab bar div.tabs ul.secondary{display:none;}*/
+	
+	#publish_tab, #delete_tab {
+border:1px solid black;
+display:inline;
+margin-right:5px;
+padding:4px;
+	}
+	
+		#publish_tab a, #delete_tab a{   
+color:#000000;
+display:inline;
+font-weight:bold;
+text-decoration:none;}
+
+#publish_tab:hover, #delete_tab:hover{   
+background:none repeat scroll 0 0 #EEEEEE;
+}
+	
+	     /*edit all tab*/
+ div#block-views-Edit_all_tab-block_1{
+ border:1px solid black;
+display:block;
+height:20px;
+line-height:20px;
+margin-top:5px;
+padding:0;
+width:85px;
+  }
+   div#block-views-Edit_all_tab-block_1 .field-content a{
+   background-color:white;
+border-width:0;
+color:#000000;
+display:block;
+font-weight:bold;
+padding:0 5px;
+text-decoration:none;
+   }
+      div#block-views-Edit_all_tab-block_1 .field-content a:hover{
+background:none repeat scroll 0 0 #EEEEEE;
+   }
+   
+   /*comments*/
+   form#comment-form ul.tips{display:none;}
+   form#comment-form p{display:none}
+   form#comment-form textarea{height:70px;}
+   .comment-inner {border:1px solid #eee;}
+   .comment-inner .submitted {background-color:#eee;padding:3px;}
+   .comment-inner .content {padding:3px;}
+     .comment-inner ul.links{margin:0; }
+   .comment-inner .links li{margin:0; border:1px solid #eee;}
+   #block-views-comments-block_1 h2{font-size:1em;}
+   #block-commentblock-comment_form h2{font-size:1em;}
+   form#comment-form div label,  form#comment-form div a {display:none;}
+   
+   /*editall page*/
+   div.view-Editall div.views-row div {position:relative;bottom:4px;}
+  .editview-field .form-item label, .editview-field .form-item .description, .editview-field fieldset legend {display:inline;}
+  td.editview-field{float:left;}
+  td.editview-field div {display:inline;}
+  div.view-Editall div.views-row{border:2px solid #eee; margin:3px; padding: 3px; padding-bottom: 10px;}
+  div.view-Editall div.views-row span {display:inline; position:relative;right:1px;top:}
+  div#editview-node-form-new{display:none;}
+  div.view-Editall span .form-submit{display:none;}
+  div.view-Editall .form-submit{float:right; position:relative;top:111px;}
+  .editview-row tr,  .editview-row tbody, .editview-row th  {border:0;margin:0;} 
+  
+  /* Legal Description edit
+     div#edit-field-geog-lgl-descrp-0-value-wrapper input{width:339px; font-size:1em;max-width:none;}
+  	 div#edit-field-geog-lgl-descrp-0-value-1-wrapper input{width:339px; font-size:1em;max-width:none;}
+	 div#edit-field-geog-lgl-descrp-0-value-wrapper label{background:#eee;padding-right:98px;padding-bottom:5px; margin:0; display:inline;}
+	 div#edit-field-geog-lgl-descrp-0-value-1-wrapper label{background:#eee;padding-right:98px;padding-bottom:5px; margin:0; display:inline;}
+	 div#edit-field-geog-lgl-descrp-0-value-wrapper{display:block;}
+	 div#edit-field-geog-lgl-descrp-0-value-1-wrapper{display:block;}
+	 */
 	/*.resizable-textarea {display:inline;}
 	.resizable-textarea .grippie {
 		height: 9px;
@@ -882,6 +1049,28 @@ padding-right:10px;
 	html.js .resizable-textarea textarea {
 		margin-bottom: 0;
 		width: 30%;
-		display: inline;*/
-  }
+		display: inline;
+  }*/
   
+  
+  /*LHD form*/
+  div.node-type-webform div.content p{font-size:1.5em;font-weight:bold;}
+#webform-component-property_reference {color:#aaa; margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee;}
+#webform-component-property_reference label {display:inline; width:200px;}
+#webform-component-property_reference input {display:inline; width:75px;color:#aaa;}
+
+.webform-component-textfield input {width:275px;}
+.webform-component-textarea .resizable-textarea {margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee;}
+.webform-component-textarea .resizable-textarea textarea {height:50px;}
+   
+  #webform-component-source_for_tcad_id{}
+  #webform-component-source_for_area_of_lot{}
+  #webform-component-source_for_legal_description{}
+  #webform-component-source_for_original_location{}
+  
+  .webform-client-form fieldset {margin: 10px;}
+
+  
+  /*photos block*/
+  .view-Photo-Block  div {display:inline;}
+  .view-Photo-Block .views-field-field-back-ref-nid {display:block;}
