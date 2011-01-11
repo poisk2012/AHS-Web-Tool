@@ -1,41 +1,39 @@
 <?php
-// $Id: customsite.module
+// $Id: lhd.module
 
 /**
 * @file
-* Custom functions for this site.
+* Local Historic District Form
 */
 
 //HOOK_PERM
 
 /**
 * Valid permissions for this module
-* @return array An array of valid permissions for the customsite module
+* @return array An array of valid permissions for the lhd module
 */
-function customsite_perm() {
-  return array('access customsite content');
-} // function customsite_perm()
-
+function lhd_perm() {
+  return array('access lhd content');
+} // function lhd_perm()
 
 //HOOK_MENU
-  function customsite_menu() {
+  function lhd_menu() {
   
   $items = array();
 
        $items['lhd'] = array(
     'title' => 'Local Historic District Form',
-    'page callback' => 'customsite_lhdpage',
-    'access arguments' => array('access customsite content'),
+    'page callback' => 'lhd_lhdpage',
+    'access arguments' => array('access lhd content'),
     'type' => MENU_CALLBACK
   );
 
 
   return $items;
-} // function customsite_menu
+} // function lhd_menu
  
-
 //CUSTOM PAGE CONTENT FUNCTION
-function customsite_all() {
+function lhd_all() {
   // content variable that will be returned for display
   $page_content = '';
 
@@ -68,13 +66,12 @@ function customsite_all() {
   return $page_content;
 }
 
-
 //CUSTOM LHD FORM
-function customsite_lhdpage() {
-return drupal_get_form('customsite_lhdform');
+function lhd_lhdpage() {
+return drupal_get_form('lhd_lhdform');
 }
 
-function customsite_lhdform($form_state) {
+function lhd_lhdform($form_state) {
 
 $nid = $_GET['nid'];
 $prop_node = node_load($nid);
@@ -174,7 +171,7 @@ $field_contr_lhd_node=node_load($prop_node->field_contr_lhd_ref["0"]["nid"]);
 	'#weight' => -10,
   );
   
-  foreach ($field_contr_lhd_node->field_contr_lhd_justif as $val){$field_contr_lhd_justif_flat[] = $val['value'];}; //make flattened array for #default_value
+  foreach ($field_contr_lhd_node->field_contr_lhd_justif as $val){$field_contr_lhd_justif_flat[] = $val['value'];};  //make flattened array for #default_value
   $form['top']['contr_lhd']['field_contr_lhd_justif']['0']['value'] = array(
     '#type' => 'checkboxes',
     '#title' => t('If not contributing, what is the justification'),
@@ -1307,7 +1304,7 @@ foreach ($field_outbuildings_node->field_outbuildings as $val){$field_outbuildin
    $form['clear'] = array(
     '#type' => 'submit',
     '#value' => 'Reset form',
-    '#validate' => array('customsite_lhdform_clear'),
+    '#validate' => array('lhd_lhdform_clear'),
   );
   return $form;
 }
@@ -1322,7 +1319,7 @@ function multi_array_diff(&$ar1, &$ar2) {
    return $diff;
 }
 
-function customsite_lhdform_clear($form, &$form_state) {
+function lhd_lhdform_clear($form, &$form_state) {
   unset ($form_state['values']);  // ensures fields are blank after reset
                                   // button is clicked
   $form_state['rebuild'] = TRUE;
@@ -1542,7 +1539,7 @@ function check_field_blanks($form_state) {
 	return $form_state;
 }
 
-function customsite_lhdform_validate($form, &$form_state) {
+function lhd_lhdform_validate($form, &$form_state) {
 
 	//This will make 'other' fields blank if 'other' is selected, etc
 	$form_state = check_field_blanks($form_state);
@@ -1718,8 +1715,7 @@ function correct_multi_value_fields($fieldname, $form_state) {
 	return $form_state;
 }
 
-
-function customsite_lhdform_submit($form, &$form_state) {
+function lhd_lhdform_submit($form, &$form_state) {
 
 	//drupal_set_message('<pre>' . check_plain(print_r($form_state, true)) . '</pre>');
 
@@ -1748,4 +1744,3 @@ function customsite_lhdform_submit($form, &$form_state) {
     $form_state['redirect'] = 'node/' . $_GET['nid']; // Redirects the user.
 	
 }
-

@@ -1,0 +1,4 @@
+; $Id$
+name = Local Historic District Custom Form
+description = Custom form
+core = 6.x

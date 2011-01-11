@@ -1,4 +1,4 @@
 ; $Id$
-name = Custom site functions
-description = Custom functions for this site.
+name = Customsite module
+description = custom
 core = 6.x
