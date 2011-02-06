@@ -1,0 +1,241 @@
+<?php
+// $Id: batch_import.module
+//through
+/**
+* @file
+* Local Historic District Form
+*/
+
+//HOOK_PERM
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the batch_import module
+*/
+
+function batch_import_perm() {
+  return array('access batch_import content');
+} // function batch_import_perm()
+
+//HOOK_MENU
+function batch_import_menu() {
+  
+  $items = array();
+
+       $items['batch_import'] = array(
+    'title' => 'Batch Importer',
+    'page callback' => 'batch_import_page',
+    'access arguments' => array('access batch_import content'),
+    'type' => MENU_CALLBACK
+  );
+
+
+  return $items;
+} // function batch_import_menu
+ 
+function batch_import_page() {
+return drupal_get_form('batch_import_form');
+}
+
+function batch_import_form($form_state) {
+
+//FORM
+
+//BUTTONS
+
+    $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Go',
+  );
+
+  return $form;
+}
+
+
+function batch_import_form_validate($form, &$form_state) {
+
+    return;
+}
+
+function get_addresses () {
+ 
+$streets_import_array1 = array(
+"3906 Bailey","2901 Beanna Street","2903 Beanna Street","2905 Beanna Street","2907 Beanna Street","2908 Beanna Street","2909 Beanna Street","2911 Beanna Street","2913 Beanna Street","2914 Beanna Street","2915 Beanna Street","501 Bellevue Place","506 Bellevue Place","508 Bellevue Place","509 Bellevue Place","511 Bellevue Place","3103 Benelva Drive","3113 Benelva Drive","3115 Benelva Drive","600 Bellevue Place","601 Bellevue Place","603 Bellevue Place","605 Bellevue Place","609 Bellevue Place","501 Carolyn Avenue","505 Carolyn Avenue","506 Carolyn Avenue","508 Carolyn Avenue","509 Carolyn Avenue","600 Carolyn Avenue","601 Carolyn Avenue","602 Carolyn Avenue","603 Carolyn Avenue","3407 Cedar Street","3408 Cedar Street","3409 Cedar Street","3411 Cedar Street","3412 Cedar Street","3413 Cedar Street","3414 Cedar Street","3415 Cedar Street","3417 Cedar Street","3700 blk of Cedar Street","3701 Cedar Street","3703 Cedar Street","3407 Cedar Street","3408 Cedar Street","3409 Cedar Street","3411 Cedar Street","3412 Cedar Street","3404 Grooms Street","3500 blk of Grooms","3504 Grooms Street","3606 Grooms Street","3608 Grooms Street","3704 Grooms Street","3706 Grooms Street","3000 blk of Guadalupe","3002 Guadalupe Street","3025 Guadalupe Street","3101 Guadalupe Street","3204 Guadalupe Street","3205 Guadalupe Street","3404 Guadalupe Street","3415 Guadalupe Street","3511 Guadalupe Street","4013 Guadalupe Street","4017 Guadalupe Street","4021-4029* Guadalupe Street","4100 blk of Guadalupe","4100 blk of Guadalupe","4100 blk of Guadalupe","4100 blk of Guadalupe","4100 blk of Guadalupe","4100 blk of Guadalupe","4100 blk of Guadalupe","4100 blk of Guadalupe","4100 blk of Guadalupe","4100 blk of Guadalupe","4101 Guadalupe Street","4111 Guadalupe Street","4113.5 Guadalupe Street","4115 Guadalupe Street","4117 Guadalupe Street","4119-4125 Guadalupe Street","4203 Guadalupe Street","4205 Guadalupe Street","4207 Guadalupe Street","4209 Guadalupe Street","4225 Guadalupe Street","609 Carolyn Avenue","3400 Cedar Street","3402 Cedar Street","3404 Cedar Street","3405 Cedar Street","3406 Cedar Street","3413 Cedar Street","3414 Cedar Street","3415 Cedar Street","3417 Cedar Street","3700 blk of Cedar St.","3701 Cedar Street","3703 Cedar Street","3705 Cedar Street","3709 Cedar Street","3711 Cedar Street","3005 Fruth Street","3006 Fruth Street","3008 Fruth Street","3009A-D Fruth Street","3010 Fruth Street","3104 Grandview Street","3107 Grandview Street","3108 Grandview Street","3109 Grandview Street","3111 Grandview Street","3113 Grandview Street","3200 Grandview Street","3204 Grandview Street","3206 Grandview Street","3208 Grandview Street","3103 Grooms Street","3105 Grooms Street","3111 Grooms Street","3206 Grooms Street","3304 Grooms Street","3402 Grooms Street","500 Harris Avenue","507 Harris Avenue","508 Harris Avenue","509 Harris Avenue","511 Harris Avenue","600 Harris Avenue","601 Harris Avenue","602 Harris Avenue","604 Harris Avenue","700 Harris Avenue","3006 Duval","3100 Duval","3102 Duval","3105 Duval","3110 Duval","3126 Duval","3209 Duval","3210 Duval","3215 Duval","3219 Duval","3300 Duval","3312 Duval","3400 Duval","3402 Duval","3406 Duval","3408 Duval","3412 Duval","3500 Duval","3502 Duval","3504 Duval","3506 Duval","3508 Duval","3703 Duval","3705 Duval","3707 Duval","3709 Duval","3711 Duval","3800 Duval","3802 Duval","3810 Duval","3004 Fruth Street","110 East 30th Street","200 East 30th Street","204 East 30th Street","206* East 30th Street","302 East 30th Street","304/304 1/2 East 30th Street","402 East 30th Street","806 East 30th Street","807 East 30th Street","808 East 30th Street","809 East 30th Street","818 East 30th Street","820 East 30th Street","908 West 30th Street","906 West 30th Street","904 West 30th Street","902 West 30th Street","900 West 30th Street","808 West 30th Street","800 West 30th Street","708 West 30th Street","706 West 30th Street","502 West 30th Street","406 West 30th Street","804 West 30-1/2 Street","808 West 30-1/2 Street","810 West 30-1/2 Street","904 West 30-1/2 Street","101 East 31st Street","102 East 31st Street","103 East 31st Street","107 East 31st Street","109 East 31st Street","110 East 31st Street","200 East 31st Street","202 East 31st Street","206 East 31st Street","208 East 31st Street","209 East 31st Street","409-411 East 31st Street","103 West 31st Street","201 West 31st Street","202 West 31st Street","608 West 31st Street","609 West 31st Street","611 West 31st Street","613 West 31st Street","615 West 31st Street","617 West 31st Street","635 West 31st Street","637 West 31st Street","700 West 31st Street","702 West 31st Street","704 West 31st Street","706 West 31st Street","707 West 31st Street","708 West 31st Street","709 West 31st Street","711 West 31st Street","804 West 31st Street","806 West 31st Street","807 West 31st Street","810 West 31st Street","811 West 31st Street","901 West 31st Street","903 West 31st Street","903 West 31st Street","906 West 31st Street","1004 West 31st Street","1014 West 31st Street","1017 West 31st Street","1100 West 31st Street","1101 West 31st Street","1103 West 31st Street","1105 West 31st Street","1212 West 31st Street","606 West 31-1/2 Street","609 West 31-1/2 Street","610 West 31-1/2 Street","611 West 31-1/2 Street","612 West 31-1/2 Street"
+);
+
+$streets_import_array2 = array(
+"613 West 31-1/2 Street","613 West 31-1/2 Street","614 West 31-1/2 Street","615 West 31-1/2 Street","616 West 31-1/2 Street","618 West 31-1/2 Street","300 East 32nd Street","302 East 32nd Street","303 East 32nd Street","304 East 32nd Street","305 East 32nd Street","306 East 32nd Street","308 East 32nd Street","403 East 32nd Street","405 East 32nd Street","407 East 32nd Street","500 East 32nd Street","502 East 32nd Street","600 East 32nd Street","703 East 32nd Street","705 East 32nd Street","707 East 32nd Street","709 East 32nd Street","711 East 32nd Street","713 East 32nd Street","715 East 32nd Street","717 East 32nd Street","719 East 32nd Street","100 West 32nd Street","101 West 32nd Street","102 West 32nd Street","103 West 32nd Street","104 West 32nd Street","105 West 32nd Street","106 West 32nd Street","107 West 32nd Street","108 West 32nd Street","109 West 32nd Street","110 West 32nd Street","112 West 32nd Street","113 West 32nd Street","115 West 32nd Street","200 West 32nd Street","201 West 32nd Street","202 West 32nd Street","204 West 32nd Street","205 West 32nd Street","206 West 32nd Street","207 West 32nd Street","208 West 32nd Street","401 West 32nd Street","404 West 32nd Street","405 West 32nd Street","410 West 32nd Street","412 West 32nd Street","414 West 32nd Street","416 West 32nd Street","600 Blk West 32nd Street","606 West 32nd Street","607 West 32nd Street","608 West 32nd Street","609 West 32nd Street","613 West 32nd Street","614 West 32nd Street","615 West 32nd Street","617 West 32nd Street","700 West 32nd Street","701 West 32nd Street","702 West 32nd Street","703 West 32nd Street","705 West 32nd Street","706 West 32nd Street","708 West 32nd Street","806 West 32nd Street","807 West 32nd Street","808 West 32nd Street","809 West 32nd Street","810 West 32nd Street","200 East 33rd Street","201 East 33rd Street","202 East 33rd Street","206 East 33rd Street","207 East 33rd Street","208 East 33rd Street","209 East 33rd Street","401 East 33rd Street","405 East 33rd Street","100 West 33rd Street","101 West 33rd Street","102 West 33rd Street","103 West 33rd Street","104 West 33rd Street","105 West 33rd Street","108 West 33rd Street","109 West 33rd Street","110 West 33rd Street","111 West 33rd Street","112 West 33rd Street","113 West 33rd Street","200 West 33rd Street","201 West 33rd Street","202 West 33rd Street","203 West 33rd Street","204 West 33rd Street","205 West 33rd Street","206 West 33rd Street","207 West 33rd Street","208 West 33rd Street","209 West 33rd Street","210 West 33rd Street","300 West 33rd Street","400 West 33rd Street","404 West 33rd Street","407 West 33rd Street","408 West 33rd Street","500 West 33rd Street","501 West 33rd Street","503 West 33rd Street","507 West 33rd Street","607 West 33rd Street","609 West 33rd Street","611 West 33rd Street","612 West 33rd Street","613 West 33rd Street","614 West 33rd Street","615 West 33rd Street","616 West 33rd Street","618 West 33rd Street","103 East 34th Street","200 East 34th Street","201 East 34th Street","202 East 34th Street","203 East 34th Street","204 East 34th Street","205 East 34th Street","206 East 34th Street","207 East 34th Street","208 East 34th Street","209 East 34th Street","305 East 34th Street","306 East 34th Street","309 East 34th Street","310 East 34th Street","400 East 34th Street","402 East 34th Street","404 East 34th Street","110 West 34th Street","300 West 34th Street","302 West 34th Street","304 West 34th Street","308 West 34th Street","402 West 34th Street","506 West 34th Street","614 West 34th Street","616 West 34th Street","620 West 34th Street","624 West 34th Street","628 West 34th Street","631 West 34th Street","702 West 34th Street","712 West 34th Street","808 West 34th Street","905 West 34th Street","1204 West 34th Street","1309 West 34th Street","104 East 35th Street","106 East 35th Street","200 East 35th Street","202 East 35th Street","203 East 35th Street","204 East 35th Street","205 East 35th Street","207 East 35th Street","209 East 35th Street","301 East 35th Street","303 East 35th Street","305 East 35th Street","307 East 35th Street","311 East 35th Street","313 East 35th Street","400 East 35th Street","401 East 35th Street","402 East 35th Street","403 East 35th Street","404 East 35th Street","405 East 35th Street","407 East 35th Street","102 West 35th Street","207 West 35th Street","300 West 35th Street","301 West 35th Street","302 West 35th Street","304 West 35th Street","306 West 35th Street","310 West 35th Street","317 West 35th Street","403 West 35th Street","406 West 35th Street","407 West 35th Street","411 West 35th Street","500 West 35th Street","506 West 35th Street","510 West 35th Street","604 West 35th Street","606 West 35th Street","607 West 35th Street","608 West 35th Street","609 West 35th Street","610 West 35th Street","611 West 35th Street","614 West 35th Street","615 West 35th Street","616 West 35th Street","617 West 35th Street","619 West 35th Street","620 West 35th Street","621 West 35th Street","702 West 35th Street","703 West 35th Street","704 West 35th Street","705 West 35th Street","706 West 35th Street","707 West 35th Street","708 West 35th Street","709 West 35th Street","710 West 35th Street","711 West 35th Street","712 West 35th Street","713 West 35th Street","714 West 35th Street","715 West 35th Street","716 West 35th Street","300 West 37th Street","301 West 37th Street","302 West 37th Street","303 West 37th Street","304 West 37th Street","305 West 37th Street","306 West 37th Street","307 West 37th Street","308 West 37th Street","309 West 37th Street","310 West 37th Street","311 West 37th Street","312 West 37th Street","313 West 37th Street","314 West 37th Street","315 West 37th Street"
+);
+
+$streets_import_array3 = array(
+"400 West 37th Street","401 West 37th Street","402 West 37th Street","403 West 37th Street","404 West 37th Street","405 West 37th Street","406 West 37th Street","407 West 37th Street","409 West 37th Street","411 West 37th Street","500 Blk West 37th Street","501 West 37th Street","505 West 37th Street","507 West 37th Street","509 West 37th Street","511 West 37th Street","611 West 37th Street","613 West 37th Street","615 West 37th Street","617 West 37th Street","107 East 38th Street","203* East 38th Street","301 East 38th Street","303 East 38th Street","305 East 38th Street","309 East 38th Street","313 East 38th Street","401 East 38th Street","403 East 38th Street","405 East 38th Street","407 East 38th Street","607 East 38th Street","106 West 38th Street","108 West 38th Street","305 West 38th Street","307 West 38th Street","309 West 38th Street","310 West 38th Street","311 West 38th Street","312 West 38th Street","313 West 38th Street","315 West 38th Street","401 West 38th Street","500 West 38th Street","502 West 38th Street","503 West 38th Street","504 West 38th Street","113 West 38-1/2 Street","3906 Balley","2901 Beanna Street","2903 Beanna Street","2905 Beanna Street","2907 Beanna Street","2908 Beanna Street","2909 Beanna Street","2911 Beanna Street","2913 Beanna Street","2914 Beanna Street","2915 Beanna Street","501 Belleview","509 Belleview","511 Belleview","601 Belleview","603 Belleview","605 Belleview","609 Belleview","506 Bellevue Place","508 Bellevue Place","600 Bellevue Place","3103 Benelva Drive","3113 Benelva Drive","3115 Benelva Drive","501 Carolyn Avenue","505 Carolyn Avenue","506 Carolyn Avenue","508 Carolyn Avenue","509 Carolyn Avenue","600 Carolyn Avenue","601 Carolyn Avenue","602 Carolyn Avenue","603 Carolyn Avenue","604 Carolyn Avenue","609 Carolyn Avenue","3400 Cedar Street","3402 Cedar Street","3404 Cedar Street","3405 Cedar Street","3406 Cedar Street","3407 Cedar Street","3408 Cedar Street","3409 Cedar Street","3411 Cedar Street","3412 Cedar Street","3413 Cedar Street","3414 Cedar Street","3415 Cedar Street","3417 Cedar Street","3700 Blk Cedar Street","3701 Cedar Street","3703 Cedar Street","3705 Cedar Street","3709 Cedar Street","3711 Cedar Street","3006 Duval","3100 Duval","3102 Duval","3105 Duval","3110 Duval","3126 Duval","3209 Duval","3210 Duval","3215 Duval","3219 Duval","3300 Duval","3312 Duval","3400 Duval","3402 Duval","3406 Duval","3408 Duval","3412 Duval","3500 Duval","3502 Duval","3504 Duval","3506 Duval","3508 Duval","3703 Duval","3705 Duval","3707 Duval","3709 Duval","3711 Duval","3800 Duval","3802 Duval","3810 Duval","3004 Fruth Street","3005 Fruth Street","3006 Fruth Street","3008 Fruth Street","3009 A-D Fruth Street","3010 Fruth Street","3104 Grandview Street","3107 Grandview Street","3108 Grandview Street","3109 Grandview Street","3111 Grandview Street","3113 Grandview Street","3200 Grandview Street","3204 Grandview Street","3206 Grandview Street","3208 Grandview Street","3103 Grooms Street","3105 Grooms Street","3111 Grooms Street","3206 Grooms Street","3304 Grooms Street","3402 Grooms Street","3404 Grooms Street","3500 Blk Grooms Street","3504 Grooms Street","3606 Grooms Street","3608 Grooms Street","3704 Grooms Street","3706 Grooms Street","3000 Blk Guadalupe Street","3002 Guadalupe Street","3025 Guadalupe Street","3101 Guadalupe Street","3204 Guadalupe Street","3205 Guadalupe Street","3404 Guadalupe Street","3415 Guadalupe Street","3511 Guadalupe Street","4013 Guadalupe Street","4017 Guadalupe Street","4021-4029* Guadalupe Street","4100 Blk Guadalupe Street","4100 Blk Guadalupe Street","4100 Blk Guadalupe Street","4100 Blk Guadalupe Street","4100 Blk Guadalupe Street","4100 Blk Guadalupe Street","4100 Blk Guadalupe Street","4100 Blk Guadalupe Street","4100 Blk Guadalupe Street","4100 Blk Guadalupe Street","4101 Guadalupe Street","4111 Guadalupe Street","4113 1/2 Guadalupe Street","4115 Guadalupe Street","4117 Guadalupe Street","4119-4125 Guadalupe Street","4203 Guadalupe Street","4205 Guadalupe Street","4207 Guadalupe Street","4209 Guadalupe Street","4225 Guadalupe Street","500 Harris Avenue","507 Harris Avenue","508 Harris Avenue","509 Harris Avenue","511 Harris Avenue","600 Harris Avenue","601 Harris Avenue","602 Harris Avenue","604 Harris Avenue","700 Harris Avenue","3104 Helms Street","3108 Helms Street","3201 Helms Street","3202 Hemphill Park","3200 Hemphill Park","3125 Hemphill Park","3123 Hemphill Park","3121 Hemphill Park","3117 Hemphill Park","3115 Hemphill Park","3111 Hemphill Park","3106 Hemphill Park","3104 Hemphill Park","3102 Hemphill Park","3100 Hemphill Park","3014 Hemphill Park","3008 Hemphill Park","3006 Hemphill Park","3004 Hemphill Park","3307 Helms Street","3304 Helms Street","3205 Helms Street","3204 Hemphill Park","3206 Hemphill Park","115 Laurel Lane","114 Laurel Lane","113 Laurel Lane","112 Laurel Lane","110 Laurel Lane","109 Laurel Lane","108 Laurel Lane","107 Laurel Lane","106 Laurel Lane","105 Laurel Lane","104 Laurel Lane","103 Laurel Lane","102 Laurel Lane","101 Laurel Lane","100 Laurel Lane","711 Landon Lane"
+);
+
+$streets_import_array4 = array(
+"709 Landon Lane","707 Landon Lane","706 Landon Lane","705 Landon Lane","704 Landon Lane","703 Landon Lane","702 Landon Lane","701 Landon Lane","700 Landon Lane","3702 Home Lane","3210 Hemphill Park","3209 Hemphill Park","3208 Hemphill Park","116 Laurel Lane","121 Laurel Lane","120 Laurel Lane","119 Laurel Lane","117 Laurel Lane","122 Laurel Lane","809 Leonard Street","807 Leonard Street","805 Leonard Street","804 Leonard Street","802 Leonard Street","123 Laurel Lane","3204 Lipscomb Street","3102 Lipscomb Street","3100 Lipscomb Street","3507 Liberty Street","3404 Liberty Street","3309 Liberty Street","3308 Liberty Street","3307 Liberty Street","3305 Liberty Street","3303 Liberty Street","3302 Liberty Street","3217 Liberty Street","3215 Liberty Street","3213 Liberty Street","3211 Liberty Street","3209 Liberty Street","300 Moore Boulevard","301 Moore Boulevard","304 Moore Boulevard","305 Moore Boulevard","308 Moore Boulevard","309 Moore Boulevard","311 Moore Boulevard","3113 Owen Circle","3406 Owen Circle","3408 Owen Circle","3410 Owen Circle","3412 Owen Circle","505 Ratherview Place","507 Ratherview Place","509 Ratherview Place","601 Ratherview Place","605 Ratherview Place","607 Ratherview Place","611 Ratherview Place"
+);
+
+return $streets_import_array2;
+
+}
+
+
+/**
+* Alternate version of drupal_execute.
+*
+* We need to call an alternative version of drupal_validate_form()
+* because the original uses static data that prevents the same form_id
+* to be validated more than once per execution unit.
+*
+* For additional information, please see:
+* http ://drupal.org/node/260934
+*/
+function _drupal_execute($form_id, &$form_state) {
+  $args = func_get_args();
+
+  // Make sure $form_state is passed around by reference.
+  $args[1] = &$form_state;
+  
+  $form = call_user_func_array('drupal_retrieve_form', $args);
+  $form['#post'] = $form_state['values'];
+  drupal_prepare_form($form_id, $form, $form_state);
+  _drupal_process_form($form_id, $form, $form_state);
+}
+
+function _drupal_process_form($form_id, &$form, &$form_state) {
+  $form_state['values'] = array();
+
+  $form = form_builder($form_id, $form, $form_state);
+  // Only process the form if it is programmed or the form_id coming
+  // from the POST data is set and matches the current form_id.
+  if ((!empty($form['#programmed'])) || (!empty($form['#post']) && (isset($form['#post']['form_id']) && ($form['#post']['form_id'] == $form_id)))) {
+    $form_state['process_input'] = TRUE;
+    _drupal_validate_form($form_id, $form, $form_state);
+
+    // form_clean_id() maintains a cache of element IDs it has seen,
+    // so it can prevent duplicates. We want to be sure we reset that
+    // cache when a form is processed, so scenerios that result in
+    // the form being built behind the scenes and again for the
+    // browser don't increment all the element IDs needlessly.
+    form_clean_id(NULL, TRUE);
+
+    if ((!empty($form_state['submitted'])) && !form_get_errors() && empty($form_state['rebuild'])) {
+      $form_state['redirect'] = NULL;
+      form_execute_handlers('submit', $form, $form_state);
+
+      // We'll clear out the cached copies of the form and its stored data
+      // here, as we've finished with them. The in-memory copies are still
+      // here, though.
+      if (variable_get('cache', CACHE_DISABLED) == CACHE_DISABLED && !empty($form_state['values']['form_build_id'])) {
+        cache_clear_all('form_'. $form_state['values']['form_build_id'], 'cache_form');
+        cache_clear_all('storage_'. $form_state['values']['form_build_id'], 'cache_form');
+      }
+
+      // If batches were set in the submit handlers, we process them now,
+      // possibly ending execution. We make sure we do not react to the batch
+      // that is already being processed (if a batch operation performs a
+      // drupal_execute).
+      if ($batch =& batch_get() && !isset($batch['current_set'])) {
+        // The batch uses its own copies of $form and $form_state for
+        // late execution of submit handers and post-batch redirection.
+        $batch['form'] = $form;
+        $batch['form_state'] = $form_state;
+        $batch['progressive'] = !$form['#programmed'];
+        batch_process();
+        // Execution continues only for programmatic forms.
+        // For 'regular' forms, we get redirected to the batch processing
+        // page. Form redirection will be handled in _batch_finished(),
+        // after the batch is processed.
+      }
+
+      // If no submit handlers have populated the $form_state['storage']
+      // bundle, and the $form_state['rebuild'] flag has not been set,
+      // we're finished and should redirect to a new destination page
+      // if one has been set (and a fresh, unpopulated copy of the form
+      // if one hasn't). If the form was called by drupal_execute(),
+      // however, we'll skip this and let the calling function examine
+      // the resulting $form_state bundle itself.
+      if (!$form['#programmed'] && empty($form_state['rebuild']) && empty($form_state['storage'])) {
+        drupal_redirect_form($form, $form_state['redirect']);
+      }
+    }
+  }
+}
+
+function _drupal_validate_form($form_id, $form, &$form_state) {
+  /*static $validated_forms = array();
+
+  if (isset($validated_forms[$form_id])) {
+    return;
+  }
+*/
+  // If the session token was set by drupal_prepare_form(), ensure that it
+  // matches the current user's session.
+  if (isset($form['#token'])) {
+    if (!drupal_valid_token($form_state['values']['form_token'], $form['#token'])) {
+      // Setting this error will cause the form to fail validation.
+      form_set_error('form_token', t('Validation error, please try again. If this error persists, please contact the site administrator.'));
+    }
+  }
+
+  _form_validate($form, $form_state, $form_id);
+  $validated_forms[$form_id] = TRUE;
+}
+
+
+function execute_batch($form_state, $street){
+
+	$node = array('type' => 'property');
+	global $user;
+	$node = array(
+        'uid' => (string) $user->uid,
+        'name' => (string) $user->name,
+        'type' => 'property',
+        'language' => '',
+        'body' => NULL,
+        'title' => NULL,
+        'format' => NULL,
+        'status' => 1,
+        'promote' => false,
+        'sticky' => false,
+        'created' => time(),
+        'revision' => false,
+        'comment' => '0',
+    );
+
+	$form_state['node'] = (array) $node;
+	$form_state['values']['locations']['0']['street'] = $street;
+	module_load_include('inc', 'node', 'node.pages');
+	_drupal_execute('property_node_form', $form_state, (object) $node);
+	unset($node);
+	
+	return $form_state;
+}
+
+function batch_import_form_submit($form, &$form_state) {
+
+$streets_import_array = get_addresses();
+
+$form_state['values']['locations']['0']['city'] = 'Austin';
+$form_state['values']['locations']['0']['province'] = 'Texas';
+
+$form_state['values']['op'] = t('Save');
+$form_state['values']['revision_moderation'] = 1;
+
+$orig_form_state = $form_state;
+
+//drupal_set_message('<pre>' . check_plain(print_r($streets_import_array , true)) . '</pre>');
+
+//$street = "304 East 44th Street";
+set_time_limit(0);
+foreach ($streets_import_array as $street){
+	drupal_set_message('<pre>' . check_plain(print_r($street, true)) . '</pre>');
+	$form_state = execute_batch($orig_form_state, $street);
+}
+
+//drupal_set_message('<pre>' . check_plain(print_r($streets_import_array , true)) . '</pre>');
+
+
+$form_state['redirect'] = 'batch_import'; // Redirects the user.
+//}
+}

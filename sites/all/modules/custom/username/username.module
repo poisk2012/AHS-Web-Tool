@@ -1,0 +1,39 @@
+<?php
+// $Id: username.module
+
+/**
+* @file
+* Custom username module makes username automatically into FirstName_LastName
+*/
+
+function username_email_registration_name($edit, $account) {
+    $new_user = user_load($account->uid);//need to load new user as details aren't stored in account yet - the fields appear but are blank
+    $username = $new_user->profile_firstname . ' ' . $new_user->profile_lastname;//change to your reflect profile fields
+    return ucwords($username);
+}
+ 
+
+//disable editting of username on user account edit form, except for admin
+function username_form_user_profile_form_alter(&$form, &$form_state){
+
+	global $user;
+	
+	//drupal_set_message('<pre>' . check_plain(print_r($form, true)) . '</pre>');
+	
+	$form['account']['name']['#title'] = 'Displayed Name';
+
+	if (!$user->roles[3]){
+		$form['account']['name']['#disabled'] = TRUE;
+		$form['account']['name']['#description'] = "Please contact the administrator if you need to change your displayed name";
+	}
+}
+
+//A little message for new registration
+function username_form_user_register_alter(&$form, &$form_state){
+	$form['Personal Information'] ['#description'] =  "Your displayed name throughout the site will consist of the first and last name you enter below.";
+}
+
+function username_form_property_node_form_alter(&$form, &$form_state){
+//drupal_set_message('<pre>' . check_plain(print_r(module_hook_info(), true)) . '</pre>');
+
+}

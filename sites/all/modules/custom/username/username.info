@@ -1,0 +1,4 @@
+; $Id$
+name = Custom username module
+description = Makes username automatically FirstName_LastName
+core = 6.x

@@ -793,8 +793,11 @@ padding-right:10px;
   
   /*************custom mods**************/
  
-/*div.messages{display:none;}
-.section-node div.tabs .secondary {display:none;}*/
+div.messages{display:none;}
+
+.section-node div.tabs .secondary {display:none;}
+
+div.gmapnodelabel .field-field-survey-effort-ref {display:none;}
   
   div#page-inner{border:1px solid #eee;}
   div#header{padding:0;}
@@ -807,6 +810,9 @@ padding-right:10px;
   
   .field-field-data-review-level{display:none;}
   
+  /*hide location edit in property edit form*/
+  .node-form .location {display:none;}
+  
   /*front pages*/
   div#sidebar-left-inner {margin:0;}
   div#sidebar-left-inner div.block h2{font-size:1em; font-weight:normal; background-color:#eee;padding:1px 3px;}
@@ -816,6 +822,14 @@ padding-right:10px;
   /*breadcrumbs*/
   
   .breadcrumb {background-color:#eee;margin:0;padding-left:3px;padding-top:2px;height:13px;}
+  
+  
+  /*forum*/
+ .node-type-forum .forum-topic-navigation {display:none;}
+ 
+ /*user_help block*/
+ .block-user_help {padding: 15px; background-color:#92D9FE;}
+  
   
   /*login block*/
 
@@ -893,6 +907,13 @@ padding-right:10px;
      table.views-table th.views-field-field-constr-date-value 			{width:200px;}
 	 table.views-table th.views-field-field-tcad-id-value				{width:200px;}
 	 table.views-table th.views-field-field-geog-lgl-descrp-value 		{width:200px;}
+	 
+	 /*forum view*/
+	.node-type-forum div#content-header h1.title {display:block}
+	.node-type-forum div.meta{display:block;}
+	.node-type-forum input#edit-preview{display:block;}
+	.node-type-forum input#edit-delete{display:block;}
+	.node-type-forum div.node-form input.form-submit{margin-left:490px;}
 	 
 	/*field revisions view*/
 	#content-bottom {padding:3px;margin:0 -1px 0 13px;}
@@ -1069,7 +1090,7 @@ background:none repeat scroll 0 0 #EEEEEE;
   #webform-component-source_for_original_location{}
   
   .webform-client-form fieldset {margin: 10px;}
-
+  . page-lhd .view-location-block {}
   
   /*photos block*/
   .view-Photo-Block  div {display:inline;}

@@ -1,6 +1,6 @@
 <?php
 // $Id: lhd.module
-
+//through
 /**
 * @file
 * Local Historic District Form
@@ -12,6 +12,10 @@
 * Valid permissions for this module
 * @return array An array of valid permissions for the lhd module
 */
+
+//load ctools depenency functions
+ctools_include('dependent'); 
+
 function lhd_perm() {
   return array('access lhd content');
 } // function lhd_perm()
@@ -28,43 +32,8 @@ function lhd_perm() {
     'type' => MENU_CALLBACK
   );
 
-
   return $items;
 } // function lhd_menu
- 
-//CUSTOM PAGE CONTENT FUNCTION
-function lhd_all() {
-  // content variable that will be returned for display
-  $page_content = '';
-
-  // Get today's date
-  $today = getdate();
-
-  // calculate midnight one week ago
-  $start_time = mktime(0, 0, 0, $today['mon'], ($today['mday'] - 60), $today['year']);
-
-  // we want items that occur only on the day in question,
-  // so calculate 1 day
-  $end_time = time();
-  // 60 * 60 * 24 = 86400 seconds in a day
-
-  $query = "SELECT nid, title, created FROM " .
-           "{node} WHERE created >= '%d' " .
-           " AND created <= '%d'";
-
-  // get the links (no range limit here)
-  $queryResult =  db_query($query, $start_time, $end_time);
-  while ($links = db_fetch_object($queryResult)) {
-    $page_content .= l($links->title, 'node/'.$links->nid) . '<br />';
-  }
-  // check to see if there was any content before
-  // returning the page
-  if ($page_content == '') {
-    // no content from a week ago, let the user know
-    $page_content = "No events occurred on this site on this date in history.";
-  }
-  return $page_content;
-}
 
 //CUSTOM LHD FORM
 function lhd_lhdpage() {
@@ -102,7 +71,7 @@ $form['arch'] = array(
 //*TOP FIELDSET*
 
 //Property Back Reference
-
+/*
   $form['top']['back_ref'] = array(
     '#type' => 'fieldset',
 	'#tree' => TRUE,
@@ -116,7 +85,7 @@ $form['arch'] = array(
 	'#size' => 4,
 	'#tree' => TRUE,
   );
-  
+ */
 //Survey Effort
 $field_survey_effort_node=node_load($prop_node->field_survey_effort_ref["0"]["nid"]);
 
@@ -131,7 +100,8 @@ $field_survey_effort_node=node_load($prop_node->field_survey_effort_ref["0"]["ni
     '#default_value' => t($field_survey_effort_node->field_survey_effort["0"]["value"]),
     //'#description' => "",
 	'#options' => array(
-		'none' => t('select...'),
+		'' => t('select...'),
+		'none' => t('None'),
 		'aldridge_place' => t('Aldridge Place'),
 		'buddington' => t('Buddington'),
 		'grooms' => t('Grooms'),
@@ -167,6 +137,7 @@ $field_contr_lhd_node=node_load($prop_node->field_contr_lhd_ref["0"]["nid"]);
 	'#options' => array(
 		'yes' => t('Yes'),
 		'no' => t('No'),
+		'unknown' => t('Unknown'),
 		),
 	'#weight' => -10,
   );
@@ -883,6 +854,7 @@ foreach ($field_porches_node->field_porches_rail_material as $val){$field_porche
 	'#options' => array(
 		'No' => t('No'),
 		'Yes' => t('Yes'),
+		'Unknown' => t('Unknown'),
 	),
   );
   $form['arch']['porch']['field_porchtype']['0']['value'] = array(
@@ -946,6 +918,7 @@ foreach ($field_porches_node->field_porches_rail_material as $val){$field_porche
 	'#options' => array(
 		'none' => t('No Posts'),
 		'posts' => t('Has Posts'),
+		'unknown' => t('Unknown'),
 	),
 	'#prefix' => '<div id="edit-field-porches-post-0-value-wrapper"><div id="edit-field-porches-post-0-value">',
     '#suffix' => '</div></div>',
@@ -1416,6 +1389,11 @@ function check_field_blanks($form_state) {
 			$form_state['values']['field_windows_material_other']['0']['value']
 		);
 	}
+	if (!isset($form_state['values']['field_porches']['0']['value'])) {
+		unset (
+			$form_state['values']['field_porches']['0']['value']
+		);
+	}
 	if ($form_state['values']['field_porches']['0']['value'] !== 'Yes') {
 		unset (
 			$form_state['values']['field_porchtype']['0']['value'],
@@ -1423,13 +1401,14 @@ function check_field_blanks($form_state) {
 			$form_state['values']['field_porches_roof']['0']['value'],
 			$form_state['values']['field_porches_roof_other']['0']['value'],
 			$form_state['values']['field_porches_post_material']['0']['value'],
+			$form_state['values']['field_porches_post']['0']['value'],
 			$form_state['values']['field_porches_post_other']['0']['value'],
 			$form_state['values']['field_porches_pier_type']['0']['value'],
 			$form_state['values']['field_porches_pier_other']['0']['value'],
 			$form_state['values']['field_porches_rail_material']['0']['value'],
 			$form_state['values']['field_porches_rail_other']['0']['value']
 		);
-		$form_state['values']['field_porches_post']['0']['value'] = 'none';
+		
 	}
 	if ($form_state['values']['field_porchtype']['0']['value']['other'] !== 'other') {
 		unset (
@@ -1732,7 +1711,7 @@ function lhd_lhdform_submit($form, &$form_state) {
 	}
 
 	$form_state['values']['op'] = t('Save');
-	$form_state['values']['revision_moderation'] = 0;
+	$form_state['values']['revision_moderation'] = 1;
 	$orig_form_state = $form_state;
 	
 	foreach ($fieldnames as $fieldname) {

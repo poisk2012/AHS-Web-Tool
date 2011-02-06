@@ -1,0 +1,59 @@
+<?php
+// $Id: user_help.module
+
+/**
+* @file
+* Custom functions for this site.
+*/
+
+//HOOK_PERM
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the user_help module
+*/
+function user_help_perm() {
+  return array('access user_help content');
+} // function customsite_perm()
+
+
+//HOOK_BLOCK
+function user_help_block($op = 'list', $delta = 1, $edit = array())  {
+
+global $user;
+$block = array();
+
+	if ($op == "list") {
+		$block[0]["info"] = t('Help Block');
+	}
+	
+	else if ($op == 'view') {
+		if ( arg(0) == 'map' ) {
+			$block['subject'] = 'User Guide';
+			$block['content'] = 'This blue block will guide you through the site.  Please browse to a property record using the map below, or click \'Discussion\' above to view the Discussion Forum.';
+		}
+			
+		if ( arg(0) == 'node' && is_numeric(arg(1)) && !arg(2) ) {
+			$node = node_load(arg(1));
+			if ($node->type == 'property'){
+				if ($user->uid > 0) {
+					//user is logged in
+					$block['subject'] = 'User Guide: Property Record';
+					$block['content'] = 'This is a property record.  As a registered user, you can view, edit, and add new data for this property. <br/>
+					<br/>To view, add, or edit individual fields, click their title below and follow the links or switch categories to view other fields.<br/>
+					<br/>To attach photographs and documents to this property record, click the \'Edit\' button below.<br/>
+					<br/>To fill out all the fields relevant to the Local Historic District Form, click \'Local Historic District Form\' below.';
+				}else{
+					$block['subject'] = 'User Guide: Property Record';
+					$block['content'] = 'This is a property record.  As an unregistered user, you can only view this data and its revision history.  Creating an account will allow you to edit and add new data.<br/>
+					<br/>To view individual fields in detail, click their title below or switch categories to view other fields.';
+				}
+			}
+		
+		}
+	}
+
+return $block;
+	
+}
+ 
