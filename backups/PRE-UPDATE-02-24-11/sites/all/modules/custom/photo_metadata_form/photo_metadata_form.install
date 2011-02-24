@@ -1,0 +1,18 @@
+<?php
+// $Id: photo_metadata_form.install
+
+/**
+* Implementation of hook_install()
+*/
+function photo_metadata_form_install() {
+  // Set the module weight so it can override other modules.
+  db_query("UPDATE {system} SET weight = 99 WHERE name = 'photo_metadata_form'");
+}
+
+/**
+* Implementation of hook_uninstall()
+*/
+function photo_metadata_form_uninstall() {
+  // Remove the module from the system table
+  db_query("DELETE FROM {system} WHERE name = 'photo_metadata_form'");
+}

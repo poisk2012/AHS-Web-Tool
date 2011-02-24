@@ -1,0 +1,4 @@
+; $Id$
+name = Custom Batch Importer
+description = Custom Batch Importer
+core = 6.x

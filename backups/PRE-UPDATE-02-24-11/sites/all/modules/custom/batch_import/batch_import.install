@@ -1,0 +1,18 @@
+<?php
+// $Id: batch_import.install
+
+/**
+* Implementation of hook_install()
+*/
+function batch_import_install() {
+  // Set the module weight so it can override other modules.
+  db_query("UPDATE {system} SET weight = 99 WHERE name = 'batch_import'");
+}
+
+/**
+* Implementation of hook_uninstall()
+*/
+function batch_import_uninstall() {
+  // Remove the module from the system table
+  db_query("DELETE FROM {system} WHERE name = 'batch_import'");
+}

@@ -1,0 +1,4 @@
+; $Id$
+name = custom_form module
+description = custom_form
+core = 6.x

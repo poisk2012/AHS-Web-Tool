@@ -1,0 +1,24 @@
+<?php
+// $Id: photo_metadata_form.module
+
+/**
+* @file
+* Custom functions for this site.
+*/
+
+//HOOK_PERM
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the photo_metadata_form module
+*/
+function photo_metadata_form_perm() {
+  return array('access photo_metadata_form content');
+} // function photo_metadata_form_perm()
+
+//hook_form_FORM_ID_alter
+//formid is property_node_form
+
+function photo_metadata_form_form_property_node_form_alter(&$form, &$form_state){
+drupal_set_message('<pre>' . check_plain(print_r($form, true)) . '</pre>');
+}

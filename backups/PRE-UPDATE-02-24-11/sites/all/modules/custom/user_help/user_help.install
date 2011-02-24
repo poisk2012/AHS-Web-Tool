@@ -1,0 +1,18 @@
+<?php
+// $Id: user_help.install
+
+/**
+* Implementation of hook_install()
+*/
+function user_help_install() {
+  // Set the module weight so it can override other modules.
+  db_query("UPDATE {system} SET weight = 99 WHERE name = 'customsite'");
+}
+
+/**
+* Implementation of hook_uninstall()
+*/
+function user_help_uninstall() {
+  // Remove the module from the system table
+  db_query("DELETE FROM {system} WHERE name = 'customsite'");
+}

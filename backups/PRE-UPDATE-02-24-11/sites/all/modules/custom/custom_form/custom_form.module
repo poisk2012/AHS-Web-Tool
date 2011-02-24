@@ -1,0 +1,28 @@
+<?php
+// $Id: custom_form.module
+
+/**
+* @file
+* Custom functions for this site.
+*/
+
+//HOOK_PERM
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the custom_form module
+*/
+function custom_form_perm() {
+  return array('access custom_form content');
+} // function custom_form_perm()
+
+//hook_form_FORM_ID_alter
+//formid is property_node_form
+
+function custom_form_form_alter(&$form, &$form_state){
+$form['revision_information'] = array('#type' => 'hidden');
+$form['author']['name'] = array('#title' => t('by'));
+$form['author']['date'] = array('#title' => t('added'));
+$form['options']['promote'] = array('#type' => 'hidden');
+$form['options']['sticky'] = array('#type' => 'hidden');
+}

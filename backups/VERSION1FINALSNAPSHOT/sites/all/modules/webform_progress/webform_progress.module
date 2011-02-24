@@ -1,0 +1,79 @@
+<?php
+// $Id$
+/**
+ * @file
+ * Adds an item to webforms to display the a progress bar according to the page number and page count.
+ *
+ * Author: Miro Dietiker, MD Systems
+ * http://www.md-systems.ch
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function webform_progress_form_alter(&$form, &$form_state, $form_id) {
+  if (is_array($form['details'])
+   && isset($form['details']['nid'])
+   && $form_id == 'webform_client_form_' . $form['details']['nid']['#value']) {
+    drupal_add_css(drupal_get_path('module', 'webform_progress') . '/css/webform_progress.css', 'module');
+    
+    // Add the progress bar item to the form
+    $form['progress_bar'] = array (
+      '#page_num' => $form_state['webform']['page_num'],
+      '#page_count' => $form_state['webform']['page_count'],
+      '#nid' => $form['details']['nid']['#value'],
+      '#theme' => 'webform_progress_bar',
+    );
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function webform_progress_theme($existing, $type, $theme, $path) {
+  return array(
+    'webform_progress_bar' => array(
+      'arguments' => array('progress_bar_element' => NULL),
+    ),
+  );
+}
+
+/**
+ * Theme function for the progress bar for a webform.
+ *
+ * @param $progres_bar_item: progress bar element
+ * @return HTML output of the progress bar.
+ */
+function theme_webform_progress_bar($progress_bar_item = NULL) {
+  // number of the current page.
+  $page_num = $progress_bar_item['#page_num'];
+  // total number of pages in the webform.
+  $page_count = $progress_bar_item['#page_count'];
+  // the node id of the webform. Used to give unique id's in case of multiple webforms on the same page.
+  $webform_nid = $progress_bar_item['#nid'];
+  
+  $output = '';
+
+  // only display if page count > 1
+  if ($page_num != NULL && $page_count != NULL && $page_count>1) {
+    // progress calculation
+    $percent_num = (int)(($page_num - 1) / $page_count * 100);
+    $percent = $percent_num . '%';
+    $steps = $page_num . '/' . $page_count;
+
+    // output markup
+    $output .= '<div class="webform-progress">';
+    $output .=   '<div class="webform-progress-title">' . t('Progress') . '</div>';
+    $output .=   '<div class="webform-progress-bar">';
+    $output .=     '<div class="webform-progress-bar-filled" style="width:' . (int)(($page_num - 1) / $page_count * 100) . '%;"></div>';
+    $output .=   '</div>';
+
+    // percent case
+    //$output .=   '<div class="webform-progress-text webform-progress-percentage">' .  $percent . '</div>';
+    // step case
+    $output .=   '<div class="webform-progress-text webform-progress-steps">' .  $steps . '</div>';
+    $output .= '</div>';
+  }
+
+  return $output;
+}

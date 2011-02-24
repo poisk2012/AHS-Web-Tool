@@ -1,0 +1,1894 @@
+<?php
+// $Id: customsite.module
+
+/**
+* @file
+* Custom functions for this site.
+*/
+
+
+//HOOK_HELP
+
+/**
+* Display help and module information
+* @param path which path of the site we're displaying help
+* @param arg array that holds the current path as would be returned from arg() function
+* @return help text for the path
+*/
+
+ctools_include('dependent');
+
+function customsite_help($path, $arg) {
+ $output = '';  //declare your output variable
+  switch ($path) {
+    case 'admin/help#customsite':
+      $output = '<p>'.  t("Local Historic District Form Help") .'</p>';
+      break;
+  }
+  return $output;
+} // function customsite_help
+
+//HOOK_PERM
+
+/**
+* Valid permissions for this module
+* @return array An array of valid permissions for the customsite module
+*/
+function customsite_perm() {
+  return array('access customsite content');
+} // function customsite_perm()
+
+
+//HOOK_BLOCK
+
+/**
+* Implementation of hook_block().
+* @param string $op one of "list", "view", "save" and "configure"
+* @param integer $delta code to identify the block
+* @param array $edit only for "save" operation
+*/
+/*
+function customsite_block($op = 'list', $delta = 0, $edit = array()) { 
+
+  if ($op == "list") {
+    // Generate listing of blocks from this module, for the admin/block page
+    $block = array();
+    $block[0]["info"] = t('Custom Site Functions');
+	$block[1]["info"] = t('Hook Implementation');
+    return $block;
+  } 
+   else if ($op == 'view') {
+	switch($delta) {
+		case 0:
+    // Generate our block content
+
+    // Get today's date
+    $today = getdate();
+
+    // calculate midnight two months ago
+    $start_time = mktime(0, 0, 0,
+       $today['mon'], ($today['mday'] - 60), $today['year']);
+
+    // we want items that occur only on the day in question, so  
+    // calculate 1 day
+    $end_time = time(); // get all posts from one week ago to the present
+   
+ $limitnum = variable_get("customsite_maxdisp", 3);
+
+  $query = "SELECT nid, title, created FROM " .
+           "{node} WHERE created >= %d " .
+           "AND created <= %d";
+
+  $query_result = db_query_range($query, $start_time, $end_time, 0, $limitnum);
+  
+    // content variable that will be returned for display   
+  $block_content = ''; 
+  while ($links = db_fetch_object($query_result)) {
+    $block_content .=  l($links->title, 'node/'. $links->nid) .'<br />';
+  }
+  
+if ($block_content == '') {  
+    // No content.  If we return nothing, the block 
+     // doesn't show, which is what we want.
+     //
+    return;
+  }
+
+  // set up the block 
+  $block = array();
+  
+  // add a more link to our page that displays all the links
+$options = array( "attributes" => array("title" => t("More events on this day.") ) );
+$link = l( t("more"), "customsite", $options );
+$block_content .= "<div class=\"more-link\">" . $link . "</div>";
+
+  $block['subject'] = 'Custom Site Function'; 
+  $block['content'] = $block_content;
+  
+	break;
+  } //swtich($delta)
+  return $block;
+  
+  }
+  
+} // function customsite_block
+  
+
+  //CONFIGURATION FUNCTION
+  function customsite_admin() {
+  $form = array();
+
+  $form['customsite_maxdisp'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum number of links'),
+    '#default_value' => variable_get('customsite_maxdisp', 3),
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#description' => t("The maximum number of links to display in the block."),
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}  // function customsite_admin
+
+  */
+  //HOOK_MENU
+  function customsite_menu() {
+  
+  $items = array();
+
+  $items['admin/settings/customsite'] = array(
+    'title' => 'Custom Site Functions module settings',
+    'description' => 'Custom Site Functions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('customsite_admin'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+   );
+   
+     $items['customsite'] = array(
+    'title' => 'Custom Site Functions',
+    'page callback' => 'customsite_all',
+    'access arguments' => array('access customsite content'),
+    'type' => MENU_CALLBACK
+  );
+  
+       $items['lhd'] = array(
+    'title' => 'Local Historic District Form',
+    'page callback' => 'customsite_lhdpage',
+    'access arguments' => array('access customsite content'),
+    'type' => MENU_CALLBACK
+  );
+
+
+  return $items;
+} // function customsite_menu
+ 
+  
+  //VALIDATION FUNCTION
+function customsite_admin_validate($form, &$form_state) {
+  $maxdisp = $form_state['values']['customsite_maxdisp'];
+  if (!is_numeric($maxdisp)) {
+    form_set_error('customsite_maxdisp', t('You must enter an integer for the maximum number of links.'));
+  }
+  else if ($maxdisp <= 0) {
+    form_set_error('customsite_maxdisp', t('Maximum number of links must be positive.'));
+  }
+}
+
+
+//CUSTOM PAGE CONTENT FUNCTION
+function customsite_all() {
+  // content variable that will be returned for display
+  $page_content = '';
+
+  // Get today's date
+  $today = getdate();
+
+  // calculate midnight one week ago
+  $start_time = mktime(0, 0, 0, $today['mon'], ($today['mday'] - 60), $today['year']);
+
+  // we want items that occur only on the day in question,
+  // so calculate 1 day
+  $end_time = time();
+  // 60 * 60 * 24 = 86400 seconds in a day
+
+  $query = "SELECT nid, title, created FROM " .
+           "{node} WHERE created >= '%d' " .
+           " AND created <= '%d'";
+
+  // get the links (no range limit here)
+  $queryResult =  db_query($query, $start_time, $end_time);
+  while ($links = db_fetch_object($queryResult)) {
+    $page_content .= l($links->title, 'node/'.$links->nid) . '<br />';
+  }
+  // check to see if there was any content before
+  // returning the page
+  if ($page_content == '') {
+    // no content from a week ago, let the user know
+    $page_content = "No events occurred on this site on this date in history.";
+  }
+  return $page_content;
+}
+
+
+//CUSTOM LHD FORM
+function customsite_lhdpage() {
+return drupal_get_form('customsite_lhdform');
+}
+
+function customsite_lhdform($form_state) {
+
+$nid = $_GET['nid'];
+$prop_node = node_load($nid);
+//drupal_set_message('<pre>' . check_plain(print_r($prop_node, true)) . '</pre>');
+
+//  $nid = $node->nid;
+  
+//*Major Fieldsets*
+
+$form['top'] = array(
+	'#type' => 'fieldset', 
+	);
+
+$form['general'] = array(
+	'#title' => t('General Information'),
+	'#type' => 'fieldset', 
+	'#collapsible' => 'TRUE', 
+	'#collapsed' => 'TRUE',
+	);
+
+$form['arch'] = array(
+	'#title' => t('Architectural Features'),
+	'#type' => 'fieldset', 
+	'#collapsible' => 'TRUE', 
+	'#collapsed' => 'TRUE',
+	);
+	
+//*TOP FIELDSET*
+
+//Property Back Reference
+
+  $form['top']['back_ref'] = array(
+    '#type' => 'fieldset',
+	'#tree' => TRUE,
+  );
+
+  $form['top']['back_ref']['0']['nid'] = array(
+	'#title' => t('Property Record ID'),
+	'#type' => 'textfield',
+	'#disabled' => TRUE,
+	'#value' => $_GET['nid'],
+	'#size' => 4,
+	'#tree' => TRUE,
+  );
+  
+//Survey Effort
+$field_survey_effort_node=node_load($prop_node->field_survey_effort_ref["0"]["nid"]);
+
+
+    $form['top']['survey_effort'] = array('#type' => 'fieldset',);
+    $form['top']['survey_effort']['field_survey_effort'] = array('#tree' => TRUE,);
+	$form['top']['survey_effort']['field_survey_effort_other'] = array('#tree' => TRUE,);
+  
+  $form['top']['survey_effort']['field_survey_effort']['0']['value'] = array(
+    '#type' => 'select',
+    '#title' => t('Select Local Historic District Survey Effort'),
+    '#default_value' => t($field_survey_effort_node->field_survey_effort["0"]["value"]),
+    //'#description' => "",
+	'#options' => array(
+		'none' => t('select...'),
+		'aldridge_place' => t('Aldridge Place'),
+		'buddington' => t('Buddington'),
+		'grooms' => t('Grooms'),
+		'other' => t('Other'),
+		),
+	'#weight' => 1,
+  );
+   $form['top']['survey_effort']['field_survey_effort_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Survey Effort'),
+    '#default_value' => $field_survey_effort_node->field_other["0"]["value"],
+    //'#description' => "",
+	'#prefix' => '<div id="edit-value-wrapper"><div id="edit-value">',
+    '#suffix' => '</div></div>',
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-survey-effort-0-value' => array('other')),
+	'#weight' => 2,
+  );
+
+//Contributing to LHD
+$field_contr_lhd_node=node_load($prop_node->field_contr_lhd_ref["0"]["nid"]);
+
+    $form['top']['contr_lhd'] = array('#type' => 'fieldset',);
+    $form['top']['contr_lhd']['field_contr_lhd'] = array('#tree' => TRUE,);
+	$form['top']['contr_lhd']['field_contr_lhd_justif'] = array('#tree' => TRUE,);
+	$form['top']['contr_lhd']['field_contr_lhd_other'] = array('#tree' => TRUE,);
+  
+  $form['top']['contr_lhd']['field_contr_lhd']['0']['value'] = array(
+    '#type' => 'radios',
+    '#title' => t('Contributing to Existing or Potential Local Historic District'),
+    '#default_value' => t($field_contr_lhd_node->field_contr_lhd["0"]["value"]),
+    //'#description' => "",
+	'#options' => array(
+		'yes' => t('Yes'),
+		'no' => t('No'),
+		),
+	'#weight' => -10,
+  );
+  
+  foreach ($field_contr_lhd_node->field_contr_lhd_justif as $val){$field_contr_lhd_justif_flat[] = $val['value'];}; //make flattened array for #default_value
+  $form['top']['contr_lhd']['field_contr_lhd_justif']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('If not contributing, what is the justification'),
+    '#default_value' => $field_contr_lhd_justif_flat,
+    //'#description' => "",
+	'#options' => array(
+		'integrity' => t('Not Intact/Major Alterations/Low Integrity'),
+		'newer' => t('Newer than 50 Years'),
+		'other' => t('Other'),
+		),
+    '#prefix' => '<div id="edit-field-contr-lhd-justif-0-value-wrapper"><div id="edit-field-contr-lhd-justif-0-value">',
+    '#suffix' => '</div></div>',
+	'#process' => array('ctools_dependent_process', 'expand_checkboxes'),
+	'#dependency' => array('radio:field_contr_lhd[0][value]' => array('no')),
+	'#weight' => 2,
+  );
+  
+
+   $form['top']['contr_lhd']['field_contr_lhd_other']['0']['value'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Other Justification'),
+    '#default_value' => $field_contr_lhd_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency_count' => 2,
+	'#dependency' => array('edit-field-contr-lhd-justif-0-value-other' => array(1), 'radio:field_contr_lhd[0][value]' => array('no')),
+	'#weight' => 3,
+  );
+
+//*GENERAL FIELDSET*
+
+//TCAD ID
+$field_tcad_id_node=node_load($prop_node->field_tcad_id_ref["0"]["nid"]);
+foreach ($field_tcad_id_node->field_is_tcad as $val){$field_is_tcad_flat[] = $val['value'];};//make flattened array for #default_value
+ 
+    $form['general']['tcad_id'] = array('#type' => 'fieldset',);
+	$form['general']['tcad_id']['field_is_tcad'] = array('#tree' => TRUE,);
+    $form['general']['tcad_id']['field_tcad_id'] = array('#tree' => TRUE,);
+    $form['general']['tcad_id']['field_tcad_id_sources'] = array('#tree' => TRUE,);
+	
+  $form['general']['tcad_id']['field_is_tcad']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('This property is located on a parcel listed with the Travis Central Assessors District'),
+    '#default_value' => $field_is_tcad_flat,
+    '#description' => "Please visit http://www.traviscad.org/ to determine.",
+	'#options' => array(
+		'Yes' => t('Yes'),
+	),
+  );
+  
+  $form['general']['tcad_id']['field_tcad_id']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Travis Central Assessors District Property ID'),
+    '#default_value' => $field_tcad_id_node->field_tcad_id["0"]["value"],
+    '#description' => "Six digits",
+    '#size' => 6,
+    '#maxlength' => 6,
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-is-tcad-0-value-Yes' => array(1)),
+  );
+    $form['general']['tcad_id']['field_tcad_id_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_tcad_id_node->field_sources["0"]["value"],
+    '#description' => "Visit http://www.traviscad.org/ to find Property ID",
+    '#size' => 60,
+    '#maxlength' => 60,
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-is-tcad-0-value-Yes' => array(1)),
+  );
+  
+//LEGAL DESCRIPTION , $fieldname = 'geog_lgl_descrp'
+$field_geog_lgl_descrp_node=node_load($prop_node->field_geog_lgl_descrp_ref["0"]["nid"]);
+  
+	$form['general']['geog_lgl_descrp'] = array('#type' => 'fieldset',);
+	$form['general']['geog_lgl_descrp']['field_geog_lgl_descrp'] = array('#tree' => TRUE,);
+    $form['general']['geog_lgl_descrp']['field_geog_lgl_descrp_sources'] = array('#tree' => TRUE,);
+  
+  $form['general']['geog_lgl_descrp']['field_geog_lgl_descrp']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Legal Description'),
+    '#default_value' => $field_geog_lgl_descrp_node->field_geog_lgl_descrp["0"]["value"],
+    //'#description' => "Please enter the Legal Description.",
+    '#size' => 60,
+    '#maxlength' => 60,
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-is-tcad-0-value-Yes' => array(1)),
+  );
+  $form['general']['geog_lgl_descrp']['field_geog_lgl_descrp_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_geog_lgl_descrp_node->field_sources["0"]["value"],
+    '#description' => "Visit http://www.traviscad.org/ to find Legal Description",
+    '#size' => 60,
+    '#maxlength' => 60,
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-is-tcad-0-value-Yes' => array(1)),
+  );
+  
+//OWNER NAME , $fieldname = 'owner'
+$field_owner_node=node_load($prop_node->field_owner_ref["0"]["nid"]);
+
+	$form['general']['owner'] = array('#type' => 'fieldset',);
+	$form['general']['owner']['field_owner_name'] = array('#tree' => TRUE,);
+	$form['general']['owner']['field_owner_addr'] = array('#tree' => TRUE,);
+    $form['general']['owner']['field_owner_sources'] = array('#tree' => TRUE,);
+  
+  $form['general']['owner']['field_owner_name']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Owner Name'),
+    '#default_value' => $field_owner_node->field_owner_name["0"]["value"],
+    //'#description' => "Please enter the Owner Name.",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+    $form['general']['owner']['field_owner_addr']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Owner Address'),
+    '#default_value' => $field_owner_node->field_owner_addr["0"]["value"],
+    '#description' => "Please enter the owner's full address including city, state and zip code.",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+  $form['general']['owner']['field_owner_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_owner_node->field_sources["0"]["value"],
+    //'#description' => "Please enter the source for Owner Name.",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+  
+//AT ORIGNAL LOCATION, $filename = 'at_original_location'
+$field_at_original_location_node=node_load($prop_node->field_at_original_location_ref["0"]["nid"]);
+
+	$form['general']['at_original_location'] = array('#type' => 'fieldset',);
+	$form['general']['at_original_location']['field_at_original_location'] = array('#tree' => TRUE,);
+	$form['general']['at_original_location']['field_original_location_desc'] = array('#tree' => TRUE,);
+	$form['general']['at_original_location']['field_date_moved'] = array('#tree' => TRUE,);
+    $form['general']['at_original_location']['field_at_original_location_sources'] = array('#tree' => TRUE,);
+  
+  $form['general']['at_original_location']['field_at_original_location']['0']['value'] = array(
+    '#type' => 'radios',
+    '#title' => t('Has Property Moved from Original Location'),
+    '#default_value' => $field_at_original_location_node->field_at_original_location["0"]["value"],
+    //'#description' => "", 
+    '#size' => 20,
+    '#maxlength' => 20,
+	'#options' => array(
+		'No' => t('No'),
+		'Yes' => t('Yes'),
+	),
+  );
+    $form['general']['at_original_location']['field_original_location_desc']['0']['value'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description of Original Location'),
+    '#default_value' => $field_at_original_location_node->field_original_location_desc["0"]["value"],
+    //'#description' => "",
+    '#size' => 60,
+    '#maxlength' => 60,
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('radio:field_at_original_location[0][value]' => array('Yes')),
+  );
+  $form['general']['at_original_location']['field_date_moved']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Year Moved'),
+    '#default_value' => $field_at_original_location_node->field_date_moved["0"]["value"],
+    '#description' => "Please enter the year in the format YYYY.",
+    '#size' => 4,
+    '#maxlength' => 4,
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('radio:field_at_original_location[0][value]' => array('Yes')),
+  ); 
+  $form['general']['at_original_location']['field_at_original_location_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' =>  $field_at_original_location_node->field_sources["0"]["value"],
+    //'#description' => "Please enter the source for Owner Name.",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+  
+  
+//DATE OF CONSTRUCTION, $filename = 'constr_date'
+$field_constr_date_node=node_load($prop_node->field_constr_date_ref["0"]["nid"]);
+
+
+	$form['general']['constr_date'] = array('#type' => 'fieldset',);
+	$form['general']['constr_date']['field_est_act'] = array('#tree' => TRUE,);
+	$form['general']['constr_date']['field_constr_date'] = array('#tree' => TRUE,);
+	$form['general']['constr_date']['field_construction_early'] = array('#tree' => TRUE,);
+	$form['general']['constr_date']['field_construction_late'] = array('#tree' => TRUE,);
+	$form['general']['constr_date']['field_constr_date_sources'] = array('#tree' => TRUE,);
+
+  $form['general']['constr_date']['field_est_act']['0']['value'] = array(
+    '#type' => 'radios',
+    '#title' => t('Year of Construction'),
+    '#default_value' => $field_constr_date_node->field_est_act["0"]["value"],
+    //'#description' => "",
+	'#options' => array(
+		'Estimated' => t('Estimated'),
+		'Actual' => t('Actual'),
+		'' => t('unknown'),
+		),
+  );
+  $form['general']['constr_date']['field_constr_date']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Actual Year of Construction'),
+    '#default_value' => $field_constr_date_node->field_constr_date["0"]["value"],
+    '#description' => "Please enter the year in the format YYYY.",
+    '#size' => 4,
+    '#maxlength' => 4,
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('radio:field_est_act[0][value]' => array('Actual')),
+  );  
+  $form['general']['constr_date']['field_construction_early']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Earliest Estimated Year of Construction'),
+    '#default_value' => $field_constr_date_node->field_construction_early["0"]["value"],
+    '#description' => "Please enter the year in the format YYYY.",
+    '#size' => 4,
+    '#maxlength' => 4,
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('radio:field_est_act[0][value]' => array('Estimated')),
+  );
+  $form['general']['constr_date']['field_construction_late']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Latest Estimated Year of Construction'),
+    '#default_value' => $field_constr_date_node->field_construction_late["0"]["value"],
+    '#description' => "Please enter the year in the format YYYY.",
+    '#size' => 4,
+    '#maxlength' => 4,
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('radio:field_est_act[0][value]' => array('Estimated')),
+  );
+  $form['general']['constr_date']['field_constr_date_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_constr_date_node->field_sources["0"]["value"],
+    //'#description' => "Please enter the source for Owner Name.",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+
+  
+	
+//*ARCH FEATURES FIELDSET*
+
+//stories, $filename = 'stories'
+$field_stories_node=node_load($prop_node->field_stories_ref["0"]["nid"]);
+
+  $form['arch']['stories'] = array('#type' => 'fieldset',);
+  $form['arch']['stories']['field_stories'] = array('#tree' => TRUE,);
+  $form['arch']['stories']['field_stories_sources'] = array('#tree' => TRUE,);
+  
+  $form['arch']['stories']['field_stories']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of Stories'),
+    '#default_value' => $field_stories_node->field_stories["0"]["value"],
+    //'#description' => "",
+    '#size' => 3,
+    '#maxlength' => 3,
+  );
+  $form['arch']['stories']['field_stories_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_stories_node->field_sources["0"]["value"],
+    //'#description' => "",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+
+
+//plan type, $filename = 'plan'
+$field_plantype_node=node_load($prop_node->field_plan_ref["0"]["nid"]);
+
+
+foreach ($field_plantype_node->field_plantype as $val){$field_plantype_flat[] = $val['value'];}; //make flattened array for #default_value
+
+
+  $form['arch']['plantype'] = array('#title' => 'Plan Type', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  $form['arch']['plantype']['field_plantype'] = array('#tree' => TRUE,);
+  $form['arch']['plantype']['field_plan_other'] = array('#tree' => TRUE,);
+  $form['arch']['plantype']['field_plan_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['plantype']['field_plantype']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Plan Type'),
+    '#default_value' => $field_plantype_flat,
+    //'#description' => "",
+	'#options' => array(
+		'L plan' => t('L plan'),
+		'T plan' => t('T plan'),
+		'2 room' => t('2 room'),
+		'Open' => t('Open'),
+		'Modified L-plan' => t('Modified L-plan'),
+		'Center passage' => t('Center passage'),
+		'Shotgun' => t('Shotgun'),
+		'Irregular' => t('Irregular'),
+		'Four Square' => t('Four Square'),
+		'Rectangular' => t('Rectangular'),
+		'other' => t('Other'),
+	),
+  );
+  $form['arch']['plantype']['field_plan_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other'),
+    '#default_value' => $field_plantype_node->field_other["0"]["value"],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-plantype-0-value-other' => array(1)),
+	'#size' => 30,
+    '#maxlength' => 30,
+  );
+  $form['arch']['plantype']['field_plan_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_plantype_node->field_sources["0"]["value"],
+    //'#description' => "",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+
+//foundationtype, $filename = 'foundation'
+$field_foundation_node=node_load($prop_node->field_foundation_ref["0"]["nid"]);
+
+foreach ($field_foundation_node->field_foundationtype as $val){$field_foundation_flat[] = $val['value'];}; //make flattened array for #default_value
+
+  $form['arch']['foundationtype'] = array('#title' => 'Foundation', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  $form['arch']['foundationtype']['field_foundationtype'] = array('#tree' => TRUE,);
+  $form['arch']['foundationtype']['field_foundation_other'] = array('#tree' => TRUE,);
+  $form['arch']['foundationtype']['field_foundation_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['foundationtype']['field_foundationtype']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Foundation Type'),
+    '#default_value' => $field_foundation_flat,
+    //'#description' => "",
+	'#options' => array(
+		'Pier and beam' => t('Pier and beam'),
+		'Stone' => t('Stone'),
+		'Brick' => t('Brick'),
+		'Slab' => t('Slab'),
+		'other' => t('Other'),
+	),
+  );
+  $form['arch']['foundationtype']['field_foundation_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other'),
+    '#default_value' => $field_foundation_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-foundationtype-0-value-other' => array(1)),
+    '#size' => 30,
+    '#maxlength' => 30,
+  );
+  $form['arch']['foundationtype']['field_foundation_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_foundation_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+
+  
+//wall_facade, $filename = 'wall_facade'
+$field_wall_facade_node=node_load($prop_node->field_wall_facade_ref["0"]["nid"]);
+
+foreach ($field_wall_facade_node->field_wall_facade as $val){$field_wall_facade_flat[] = $val['value'];}; //make flattened array for #default_value
+
+
+  $form['arch']['wall_facade'] = array('#title' => 'Walls', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  $form['arch']['wall_facade']['field_wall_facade'] = array('#tree' => TRUE,);
+  $form['arch']['wall_facade']['field_wall_facade_other'] = array('#tree' => TRUE,);
+  $form['arch']['wall_facade']['field_wall_facade_sources'] = array('#tree' => TRUE,);
+  
+  $form['arch']['wall_facade']['field_wall_facade']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Exterior Wall Material'),
+    '#default_value' => $field_wall_facade_flat,
+    //'#description' => "",
+	'#options' => array(
+		'Wood' => t('Wood'),
+		'Stucco' => t('Stucco'),
+		'Brick' => t('Brick'),
+		'Stone' => t('Stone'),
+		'Synthetic Siding' => t('Synthetic Siding'),
+		'other' => t('Other'),
+	),
+  );
+  $form['arch']['wall_facade']['field_wall_facade_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other'),
+    '#default_value' => $field_wall_facade_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-wall-facade-0-value-other' => array(1)),
+    '#size' => 30,
+    '#maxlength' => 30,
+  );
+  $form['arch']['wall_facade']['field_wall_facade_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_wall_facade_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+  
+ //roofs
+   $form['arch']['roof']= array('#title' => 'Roof', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  
+//rooftype	$fieldname = 'rooftype'
+$field_rooftype_node=node_load($prop_node->field_rooftype_ref["0"]["nid"]);
+
+foreach ($field_rooftype_node->field_rooftype as $val){$field_rooftype_flat[] = $val['value'];}; //make flattened array for #default_value
+
+
+  $form['arch']['roof']['rooftype'] = array('#type' => 'fieldset',);
+  $form['arch']['roof']['rooftype']['field_rooftype'] = array('#tree' => TRUE,);
+  $form['arch']['roof']['rooftype']['field_rooftype_other'] = array('#tree' => TRUE,);
+  $form['arch']['roof']['rooftype']['field_rooftype_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['roof']['rooftype']['field_rooftype']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Roof Shape'),
+    '#default_value' => $field_rooftype_flat,
+    //'#description' => "",
+	'#options' => array(
+		'Gable' => t('Gable'),
+		'Hipped' => t('Hipped'),
+		'Flat' => t('Flat'),
+		'Gambrel' => t('Gambrel'),
+		'other' => t('Other'),
+	),
+  );
+  $form['arch']['roof']['rooftype']['field_rooftype_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other'),
+    '#default_value' => $field_rooftype_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-rooftype-0-value-other' => array(1)),
+	'#size' => 30,
+    '#maxlength' => 30,
+  );
+  $form['arch']['roof']['rooftype']['field_rooftype_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_rooftype_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+  
+  
+//dormertype, $fieldname = 'dormertype'
+$field_dormertype_node=node_load($prop_node->field_dormertype_ref["0"]["nid"]);
+
+foreach ($field_dormertype_node->field_dormertype as $val){$field_dormertype_flat[] = $val['value'];}; //make flattened array for #default_value
+
+
+  $form['arch']['roof']['dormertype'] = array('#type' => 'fieldset',);
+  $form['arch']['roof']['dormertype']['field_dormertype'] = array('#tree' => TRUE,);
+  $form['arch']['roof']['dormertype']['field_dormertype_other'] = array('#tree' => TRUE,);
+  $form['arch']['roof']['dormertype']['field_dormertype_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['roof']['dormertype']['field_dormertype']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Dormer Shape'),
+    '#default_value' => $field_dormertype_flat,   
+	//'#description' => "",
+	'#options' => array(
+		'Gable' => t('Gable'),
+		'Hipped' => t('Hipped'),
+		'Flat' => t('Flat'),
+		'Gambrel' => t('Gambrel'),
+		'other' => t('Other'),
+	),
+  );
+  $form['arch']['roof']['dormertype']['field_dormertype_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other'),
+    '#default_value' => $field_dormertype_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-dormertype-0-value-other' => array(1)),
+	'#size' => 30,
+    '#maxlength' => 30,
+  );
+  $form['arch']['roof']['dormertype']['field_dormertype_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_dormertype_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+  
+//roofmaterials, $fieldname = 'roofmaterials'
+$field_roofmaterials_node=node_load($prop_node->field_roofmaterials_ref["0"]["nid"]);
+
+foreach ($field_roofmaterials_node->field_roofmaterials as $val){$field_roofmaterials_flat[] = $val['value'];}; //make flattened array for #default_value
+
+
+  $form['arch']['roof']['roofmaterials'] = array('#type' => 'fieldset',);
+  $form['arch']['roof']['roofmaterials']['field_roofmaterials'] = array('#tree' => TRUE,);
+  $form['arch']['roof']['roofmaterials']['field_roofmaterials_other'] = array('#tree' => TRUE,);
+  $form['arch']['roof']['roofmaterials']['field_roofmaterials_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['roof']['roofmaterials']['field_roofmaterials']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Roof Materials'),
+    '#default_value' => $field_roofmaterials_flat,
+    //'#description' => "",
+	'#options' => array(
+		'Composition Shingles' => t('Composition Shingles'),
+		'Tile' => t('Tile'),
+		'Metal' => t('Metal'),
+		'other' => t('Other'),
+	),
+  );
+  $form['arch']['roof']['roofmaterials']['field_roofmaterials_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other'),
+    '#default_value' => $field_roofmaterials_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-roofmaterials-0-value-other' => array(1)),
+	'#size' => 30,
+    '#maxlength' => 30,
+  );
+  $form['arch']['roof']['roofmaterials']['field_roofmaterials_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_roofmaterials_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+  
+//chim,  $fieldname = 'chimneys'
+$field_chimneys_node=node_load($prop_node->field_chimneys_ref["0"]["nid"]);
+
+foreach ($field_chimneys_node->field_chimney_material as $val){$field_chimney_material_flat[] = $val['value'];}; //make flattened array for #default_value
+
+
+  $form['arch']['chim'] = array('#title' => 'Chimneys', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  $form['arch']['chim']['field_chimneys_int_num'] = array('#tree' => TRUE,);
+  $form['arch']['chim']['field_chimneys_ext_num'] = array('#tree' => TRUE,);
+  $form['arch']['chim']['field_chimney_material'] = array('#tree' => TRUE,);
+  $form['arch']['chim']['field_chimneys_other'] = array('#tree' => TRUE,);
+  $form['arch']['chim']['field_chimneys_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['chim']['field_chimneys_int_num']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of Interior Chimneys'),
+    '#default_value' => $field_chimneys_node->field_chimneys_int_num['0']['value'],
+    //'#description' => "",
+    '#size' => 2,
+    '#maxlength' => 2,
+  );
+  $form['arch']['chim']['field_chimneys_ext_num']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of Exterior Chimneys'),
+    '#default_value' => $field_chimneys_node->field_chimneys_ext_num['0']['value'],
+    //'#description' => "",
+    '#size' => 2,
+    '#maxlength' => 2,
+  );
+  $form['arch']['chim']['field_chimney_material']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Chimney Materials'),
+    '#default_value' => $field_chimney_material_flat,
+    //'#description' => "",
+    '#size' => 20,
+    '#maxlength' => 20,
+	'#options' => array(
+		'Brick' => t('Brick'),
+		'Stone' => t('Stone'),
+		'other' => t('Other'),
+	),
+  );
+  $form['arch']['chim']['field_chimneys_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other'),
+    '#default_value' => $field_chimneys_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-chimney-material-0-value-other' => array(1)),
+  );
+  $form['arch']['chim']['field_chimneys_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_chimneys_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 20,
+    '#maxlength' => 20,
+  );
+  
+  //wind, $fieldname = 'windows'
+$field_windows_node=node_load($prop_node->field_windows_ref["0"]["nid"]);
+//drupal_set_message('<pre>' . check_plain(print_r($field_windows_node, true)) . '</pre>');
+foreach ($field_windows_node->field_window_type as $val){$field_window_type_flat[] = $val['value'];}; //make flattened array for #default_value
+foreach ($field_windows_node->field_windows_material as $val){$field_windows_material_flat[] = $val['value'];}; //make flattened array for #default_value
+
+
+  $form['arch']['wind'] = array('#title' => 'Windows', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  $form['arch']['wind']['field_window_type'] = array('#tree' => TRUE,);
+  $form['arch']['wind']['field_windows_type_other'] = array('#tree' => TRUE,);
+  $form['arch']['wind']['field_windows_material'] = array('#tree' => TRUE,);
+  $form['arch']['wind']['field_windows_material_other'] = array('#tree' => TRUE,);
+  $form['arch']['wind']['field_windows_screens'] = array('#tree' => TRUE,);
+  $form['arch']['wind']['field_windows_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['wind']['field_window_type']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Type of Window'),
+    '#default_value' => $field_window_type_flat,
+    //'#description' => "",
+		'#options' => array(
+		'Fixed' => t('Fixed'),
+		'Casement' => t('Casement'),
+		'Single Hung Sash' => t('Single Hung Sash'),
+		'Double Hung Sash' => t('Double Hung Sash'),
+		'other' => t('Other'),
+	),
+  );
+   $form['arch']['wind']['field_windows_type_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Type'),
+    '#default_value' => $field_windows_node->field_windows_type_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-window-type-0-value-other' => array(1)),
+  );
+  $form['arch']['wind']['field_windows_material']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Material of Window'),
+    '#default_value' => $field_windows_material_flat,
+    //'#description' => "",
+		'#options' => array(
+		'Wood' => t('Wood'),
+		'Steel' => t('Steel'),
+		'Aluminum' => t('Aluminum'),
+		'Vinyl' => t('Vinyl'),
+		'other' => t('Other'),
+	),
+  );
+  $form['arch']['wind']['field_windows_material_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Material'),
+    '#default_value' => $field_windows_node->field_windows_material_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-windows-material-0-value-other' => array(1)),
+  );
+  $form['arch']['wind']['field_windows_screens']['0']['value'] = array(
+    '#type' => 'radios',
+    '#title' => t('Has Decorative Screens'),
+    '#default_value' => $field_windows_node->field_windows_screens['0']['value'],
+    //'#description' => "",
+	'#options' => array(
+		'Yes' => t('Yes'),
+		'No' => t('No'),
+	),
+  );
+    $form['arch']['wind']['field_windows_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_windows_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 20,
+    '#maxlength' => 20,
+  );
+  
+   //porches,  $filename = 'porches'
+$field_porches_node=node_load($prop_node->field_porches_ref["0"]["nid"]);
+//drupal_set_message('<pre>' . check_plain(print_r($field_porches_node, true)) . '</pre>');
+
+foreach ($field_porches_node->field_porchtype as $val){$field_porchtype_flat[] = $val['value'];}; //make flattened array for #default_value
+foreach ($field_porches_node->field_porches_roof as $val){$field_porches_roof_flat[] = $val['value'];}; //make flattened array for #default_value
+//foreach ($field_porches_node->field_porches_post as $val){$field_porches_post_flat[] = $val['value'];}; //make flattened array for #default_value
+foreach ($field_porches_node->field_porches_post_material as $val){$field_porches_post_material_flat[] = $val['value'];}; //make flattened array for #default_value
+foreach ($field_porches_node->field_porches_pier_type as $val){$field_porches_pier_type_flat[] = $val['value'];}; //make flattened array for #default_value
+foreach ($field_porches_node->field_porches_rail_material as $val){$field_porches_rail_material_flat[] = $val['value'];}; //make flattened array for #default_value
+
+  $form['arch']['porch'] = array('#title' => 'Porches', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  $form['arch']['porch']['field_porches'] = array('#tree' => TRUE,);	//yes no
+  $form['arch']['porch']['field_porchtype'] = array('#tree' => TRUE,);
+  $form['arch']['porch']['field_porchtype_other'] = array('#tree' => TRUE,);
+  $form['arch']['porch']['field_porches_roof'] = array('#tree' => TRUE,);
+  $form['arch']['porch']['field_porches_roof_other'] = array('#tree' => TRUE,);
+  $form['arch']['porch']['field_porches_post'] = array('#tree' => TRUE,);
+  $form['arch']['porch']['field_porches_post_material'] = array('#tree' => TRUE,); 	
+  $form['arch']['porch']['field_porches_post_other'] = array('#tree' => TRUE,); 	
+  $form['arch']['porch']['field_porches_pier_type'] = array('#tree' => TRUE,); 	
+  $form['arch']['porch']['field_porches_pier_other'] = array('#tree' => TRUE,); 	
+  $form['arch']['porch']['field_porches_rail_material'] = array('#tree' => TRUE,);
+  $form['arch']['porch']['field_porches_rail_other'] = array('#tree' => TRUE,);
+  $form['arch']['porch']['field_porches_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['porch']['field_porches']['0']['value'] = array(
+    '#type' => 'radios',
+    '#title' => t('Has Porch'),
+    '#default_value' => $field_porches_node->field_porches['0']['value'],
+    //'#description' => "",
+	'#options' => array(
+		'No' => t('No'),
+		'Yes' => t('Yes'),
+	),
+  );
+  $form['arch']['porch']['field_porchtype']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Type of Porch'),
+    '#default_value' => $field_porchtype_flat,
+    //'#description' => "",
+	'#options' => array(
+		'Full width' => t('Full width'),
+		'Partial width' => t('Partial width'),
+		'Independent' => t('Independent'),
+		'Inset' => t('Inset'),
+		'Wraparound' => t('Wraparound'),
+		'other' => t('Other'),
+	),
+	'#prefix' => '<div id="edit-field-porchtype-0-value-wrapper"><div id="edit-field-porchtype-0-value">',
+    '#suffix' => '</div></div>',
+	'#process' => array('ctools_dependent_process', 'expand_checkboxes'),
+	'#dependency' => array('radio:field_porches[0][value]' => array('Yes')),
+  );
+   $form['arch']['porch']['field_porchtype_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Type'),
+    '#default_value' => $field_porches_node->field_porchtype_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency_count' => 2,
+	'#dependency' => array('edit-field-porchtype-0-value-other' => array(1), 'radio:field_porches[0][value]' => array('Yes')),
+  );
+  $form['arch']['porch']['field_porches_roof']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Type of Porch Roof'),
+    '#default_value' => $field_porches_roof_flat,
+    //'#description' => "",
+	'#options' => array(
+		'none' => t('No Roof'),
+		'Gable' => t('Gable'),
+		'Shed' => t('Shed'),
+		'Hip' => t('Hip'),
+		'other' => t('Other'),
+	),
+	'#prefix' => '<div id="edit-field-porch-roof-0-value-wrapper"><div id="edit-field-porches-roof-0-value">',
+    '#suffix' => '</div></div>',
+	'#process' => array('ctools_dependent_process', 'expand_checkboxes'),
+	'#dependency' => array('radio:field_porches[0][value]' => array('Yes')),
+  );
+  $form['arch']['porch']['field_porches_roof_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Roof Type'),
+    '#default_value' => $field_porches_node->field_porches_roof_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency_count' => 2,
+	'#dependency' => array('edit-field-porches-roof-0-value-other' => array(1), 'radio:field_porches[0][value]' => array('Yes')),
+  );
+  $form['arch']['porch']['field_porches_post']['0']['value'] = array(
+    '#type' => 'radios',
+    '#title' => t('Porch Posts'),
+    '#default_value' => $field_porches_node->field_porches_post['0']['value'],
+    //'#description' => "",
+	'#options' => array(
+		'none' => t('No Posts'),
+		'posts' => t('Has Posts'),
+	),
+	'#prefix' => '<div id="edit-field-porches-post-0-value-wrapper"><div id="edit-field-porches-post-0-value">',
+    '#suffix' => '</div></div>',
+	'#process' => array('ctools_dependent_process', 'expand_radios'),
+	'#dependency' => array('radio:field_porches[0][value]' => array('Yes')),
+  );
+   $form['arch']['porch']['field_porches_post_material']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Type of Porch Posts'),
+    '#default_value' => $field_porches_post_material_flat,
+    //'#description' => "",
+	'#options' => array(
+		'Brick' => t('Brick'),
+		'Metal' => t('Metal'),
+		'Square Wood' => t('Square Wood'),
+		'Turned Wood' => t('Turned Wood'),
+		'Box Columns' => t('Box Columns'),
+		'Classical Columns' => t('Classical Columns'),
+		'On piers' => t('On Piers'),
+		'other' => t('Other'),
+	),
+    '#prefix' => '<div id="edit-field-porches-post-material-0-value-wrapper"><div id="edit-field-porches-post-material-0-value">',
+    '#suffix' => '</div></div>',
+	'#process' => array('ctools_dependent_process', 'expand_checkboxes'),
+	'#dependency_count' => 2,
+    '#dependency' => array('radio:field_porches_post[0][value]' => array('posts'),'radio:field_porches[0][value]' => array('Yes')),
+  );
+   $form['arch']['porch']['field_porches_post_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Porch Post Material'),
+    '#default_value' => $field_porches_node->field_porches_post_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency_count' => 3,
+	'#dependency' => array('edit-field-porches-post-material-0-value-other' => array(1), 'radio:field_porches_post[0][value]' => array('posts'), 'radio:field_porches[0][value]' => array('Yes')),
+  );
+    $form['arch']['porch']['field_porches_pier_type']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Type of Porch Piers'),
+    '#default_value' => $field_porches_pier_type_flat,
+    //'#description' => "",
+	'#options' => array(
+		'Brick' => t('Brick'),
+		'Metal' => t('Metal'),
+		'Tapered' => t('Tapered'),
+		'other' => t('Other'),
+	),
+    '#prefix' => '<div id="edit-field-porches-pier-type-0-value-wrapper"><div id="edit-field-porches-pier-type-0-value">',
+    '#suffix' => '</div></div>',
+	'#process' => array('ctools_dependent_process', 'expand_checkboxes'),
+	'#dependency_count' => 3,
+    '#dependency' => array('edit-field-porches-post-material-0-value-On-piers' => array(1), 'radio:field_porches[0][value]' => array('Yes'), 'radio:field_porches_post[0][value]' => array('posts')),
+  );
+   $form['arch']['porch']['field_porches_pier_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Porch Pier Type'),
+    '#default_value' => $field_porches_node->field_porches_pier_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency_count' => 4,
+	'#dependency' => array('edit-field-porches-pier-type-0-value-other' => array(1), 'radio:field_porches[0][value]' => array('Yes'), 'radio:field_porches_post[0][value]' => array('posts'),'edit-field-porches-post-material-0-value-On-piers' => array(1)),
+  );
+   $form['arch']['porch']['field_porches_rail_material']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Porch Rail Material'),
+    '#default_value' => $field_porches_rail_material_flat,
+    //'#description' => "",
+	'#options' => array(
+		'None' => t('None'),
+		'Metal' => t('Metal'),
+		'Square Wood' => t('Square Wood'),
+		'Turned Wood' => t('Turned Wood'),
+		'other' => t('Other'),
+	),
+	'#prefix' => '<div id="edit-field-porches-rail-material-0-value-wrapper"><div id="edit-field-porches-rail-material-0-value">',
+    '#suffix' => '</div></div>',
+	'#process' => array('ctools_dependent_process', 'expand_checkboxes'),
+	'#dependency' => array('radio:field_porches[0][value]' => array('Yes')),
+  );
+  $form['arch']['porch']['field_porches_rail_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Porch Rail Material'),
+    '#default_value' => $field_porches_node->field_porches_rail_other['0']['value'],
+    '#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency_count' => 2,
+	'#dependency' => array('edit-field-porches-rail-material-0-value-other' => array(1), 'radio:field_porches[0][value]' => array('Yes')),
+  );
+  
+   $form['arch']['porch']['field_porches_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_porches_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 20,
+    '#maxlength' => 20,
+  );
+  
+//door features,  $fieldname = 'doors'
+$field_doors_node=node_load($prop_node->field_doors_ref["0"]["nid"]);
+//drupal_set_message('<pre>' . check_plain(print_r($field_porches_node, true)) . '</pre>');
+
+foreach ($field_doors_node->field_doortype as $val){$field_doortype_flat[] = $val['value'];}; //make flattened array for #default_value
+
+  $form['arch']['door'] = array('#title' => 'Doors', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  $form['arch']['door']['field_doortype'] = array('#tree' => TRUE,);
+  $form['arch']['door']['field_doors_other'] = array('#tree' => TRUE,);
+  $form['arch']['door']['field_doors_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['door']['field_doortype']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Door Features'),
+    '#default_value' => $field_doortype_flat,
+    //'#description' => "",
+    '#size' => 20,
+    '#maxlength' => 20,
+	'#options' => array(
+		'Single-door primary entrance' => t('Single-door primary entrance'),
+		'Double-door primary entrance' => t('Double-door primary entrance'),
+		'Glazing' => t('Glazing'),
+		'Transom' => t('Transom'),
+		'Sidelites' => t('Sidelites'),
+		'other' => t('Other'),
+	),
+  );
+  $form['arch']['door']['field_doors_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other'),
+    '#default_value' => $field_doors_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-doortype-0-value-other' => array(1)),
+  );
+  $form['arch']['door']['field_doors_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_doors_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 20,
+    '#maxlength' => 20,
+  );
+  
+//landscape features, $filename = 'landscapefeatures'
+$field_landscapefeatures_node=node_load($prop_node->field_landscapefeatures_ref["0"]["nid"]);
+//drupal_set_message('<pre>' . check_plain(print_r($field_porches_node, true)) . '</pre>');
+
+foreach ($field_landscapefeatures_node->field_landscapefeatures as $val){$field_landscapefeatures_flat[] = $val['value'];}; //make flattened array for #default_value
+
+  $form['arch']['land'] = array('#title' => 'Landscape Features', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  $form['arch']['land']['field_landscapefeatures'] = array('#tree' => TRUE,);
+  $form['arch']['land']['field_landscapefeatures_other'] = array('#tree' => TRUE,);
+  $form['arch']['land']['field_fence_height'] = array('#tree' => TRUE,);
+  $form['arch']['land']['field_fence_material'] = array('#tree' => TRUE,);
+  $form['arch']['land']['field_wall_height'] = array('#tree' => TRUE,);
+  $form['arch']['land']['field_wall_material'] = array('#tree' => TRUE,);
+  $form['arch']['land']['field_landscapefeatures_sources'] = array('#tree' => TRUE,);  
+  
+  $form['arch']['land']['field_landscapefeatures']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Landscape Features'),
+    '#default_value' => $field_landscapefeatures_flat,
+    //'#description' => "",
+		'#options' => array(
+		'Sidewalks' => t('Sidewalks'),
+		'Terracing' => t('Terracing'),
+		'Drives' => t('Drives'),
+		'Well' => t('Well'),
+		'Gardens' => t('Gardens'),
+		'Fence' => t('Fence'),
+		'Wall' => t('Wall'),
+		'other' => t('Other'),
+	),
+  );
+   $form['arch']['land']['field_landscapefeatures_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Feature'),
+    '#default_value' => $field_landscapefeatures_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-landscapefeatures-0-value-other' => array(1)),
+	'#size' => 30,
+    '#maxlength' => 30,
+  );
+  $form['arch']['land']['field_fence_material']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Fence Material'),
+    '#default_value' => $field_landscapefeatures_node->field_fence_material['0']['value'],
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-landscapefeatures-0-value-Fence' => array(1)),
+	'#size' => 30,
+    '#maxlength' => 30,
+  );
+  $form['arch']['land']['field_fence_height']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Fence Height'),
+    '#default_value' => $field_landscapefeatures_node->field_fence_height['0']['value'],
+    //'#description' => "In Inches",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-landscapefeatures-0-value-Fence' => array(1)),
+	'#size' => 3,
+    '#maxlength' => 3,
+	'#field_suffix' => 'inches (to nearest inch)',
+  );
+ $form['arch']['land']['field_wall_material']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Wall Material'),
+    '#default_value' => $field_landscapefeatures_node->field_wall_material['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-landscapefeatures-0-value-Wall' => array(1)),
+	'#size' => 30,
+    '#maxlength' => 30,
+  );
+  $form['arch']['land']['field_wall_height']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Wall Height'),
+    '#default_value' => $field_landscapefeatures_node->field_wall_height['0']['value'],
+    //'#description' => "In Inches",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-landscapefeatures-0-value-Wall' => array(1)),
+	'#size' => 3,
+    '#maxlength' => 3,
+	'#field_suffix' => 'inches (to nearest inch)',
+  );
+  $form['arch']['land']['field_landscapefeatures_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_landscapefeatures_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 60,
+    '#maxlength' => 60,
+  );
+
+
+
+//outbuildings, $fieldname = 'outbuildings'
+$field_outbuildings_node=node_load($prop_node->field_outbuildings_ref["0"]["nid"]);
+//drupal_set_message('<pre>' . check_plain(print_r($field_porches_node, true)) . '</pre>');
+
+foreach ($field_outbuildings_node->field_outbuildings as $val){$field_outbuildings_flat[] = $val['value'];}; //make flattened array for #default_value
+
+
+  $form['arch']['out'] = array('#title' => 'Outbuildings', '#type' => 'fieldset', '#collapsible' => 'TRUE', '#collapsed' => 'TRUE');
+  $form['arch']['out']['field_outbuildings'] = array('#tree' => TRUE,);
+  $form['arch']['out']['field_out_garage_single'] = array('#tree' => TRUE,);
+  $form['arch']['out']['field_out_garage_apt'] = array('#tree' => TRUE,);
+  $form['arch']['out']['field_out_garage_wall'] = array('#tree' => TRUE,);
+  $form['arch']['out']['field_out_garage_rooftype'] = array('#tree' => TRUE,);
+  $form['arch']['out']['field_out_garage_roofmaterial'] = array('#tree' => TRUE,);
+  $form['arch']['out']['field_out_barn'] = array('#tree' => TRUE,);
+  $form['arch']['out']['field_out_shed'] = array('#tree' => TRUE,);
+  $form['arch']['out']['field_outbuildings_other'] = array('#tree' => TRUE,);
+  $form['arch']['out']['field_outbuildings_sources'] = array('#tree' => TRUE,);
+  
+  $form['arch']['out']['field_outbuildings']['0']['value'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Outbuildings'),
+    '#default_value' => $field_outbuildings_flat,
+    //'#description' => "",
+	'#options' => array(
+		'Single Story Garage' => t('Single Story Garage'),
+		'Garage Apartment' => t('Garage Apartment'),
+		'Barn' => t('Barn'),
+		'Shed' => t('Shed'),
+		'other' => t('Other'),
+	),
+  );
+   $form['arch']['out']['field_out_garage_single']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of Single Story Garages'),
+    '#default_value' => $field_outbuildings_node->field_out_garage_single['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-outbuildings-0-value-Single-Story-Garage' => array(1)),
+	'#size' => 2,
+    '#maxlength' => 2,
+  );
+   $form['arch']['out']['field_out_garage_apt']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of Garage Apartments'),
+    '#default_value' => $field_outbuildings_node->field_out_garage_apt['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-outbuildings-0-value-Garage-Apartment' => array(1)),
+	'#size' => 2,
+    '#maxlength' => 2,
+  );
+   $form['arch']['out']['field_out_garage_wall']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Garage Wall Material'),
+    '#default_value' => $field_outbuildings_node->field_out_garage_wall['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-outbuildings-0-value-Garage-Apartment' => array(1), 'edit-field-outbuildings-0-value-Single-Story-Garage' => array(1)),
+  );
+   $form['arch']['out']['field_out_garage_rooftype']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Garage Roof Type'),
+    '#default_value' => $field_outbuildings_node->field_out_garage_rooftype['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-outbuildings-0-value-Garage-Apartment' => array(1), 'edit-field-outbuildings-0-value-Single-Story-Garage' => array(1)),
+  );
+   $form['arch']['out']['field_out_garage_roofmaterial']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Garage Roof Material'),
+    '#default_value' => $field_outbuildings_node->field_out_garage_roofmaterial['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-outbuildings-0-value-Garage-Apartment' => array(1), 'edit-field-outbuildings-0-value-Single-Story-Garage' => array(1)),
+  );
+   $form['arch']['out']['field_out_barn']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of Barns'),
+    '#default_value' => $field_outbuildings_node->field_out_barn['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-outbuildings-0-value-Barn' => array(1)),
+	'#size' => 2,
+    '#maxlength' => 2,
+  );
+   $form['arch']['out']['field_out_shed']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of Sheds'),
+    '#default_value' => $field_outbuildings_node->field_out_shed['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-outbuildings-0-value-Shed' => array(1)),
+	'#size' => 2,
+    '#maxlength' => 2,
+  );
+   $form['arch']['out']['field_outbuildings_other']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other Outbuildings'),
+    '#default_value' => $field_outbuildings_node->field_other['0']['value'],
+    //'#description' => "",
+	'#process' => array('ctools_dependent_process'),
+	'#dependency' => array('edit-field-outbuildings-0-value-other' => array(1)),
+  );
+  $form['arch']['out']['field_outbuildings_sources']['0']['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Source'),
+    '#default_value' => $field_outbuildings_node->field_sources['0']['value'],
+    //'#description' => "",
+    '#size' => 20,
+    '#maxlength' => 20,
+  );
+
+
+//BUTTONS
+
+    $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+   $form['clear'] = array(
+    '#type' => 'submit',
+    '#value' => 'Reset form',
+    '#validate' => array('customsite_lhdform_clear'),
+  );
+  return $form;
+}
+
+function multi_array_diff(&$ar1, &$ar2) {
+   $diff = Array();
+   foreach ($ar1 as $key => $val1) {
+      if (array_search($val1, $ar2) === false) {
+         $diff[$key] = $val1;
+      }
+   }
+   return $diff;
+}
+
+function customsite_lhdform_clear($form, &$form_state) {
+  unset ($form_state['values']);  // ensures fields are blank after reset
+                                  // button is clicked
+  $form_state['rebuild'] = TRUE;
+}
+
+function check_field_blanks($form_state) {
+
+	//it has to do each one individually because the trigger fields are not linked in any way the field they control.  future versions will fix this by standardizing the field names better
+	
+	if ($form_state['values']['field_survey_effort']['0']['value'] !== 'other') {
+		unset (
+			$form_state['values']['field_survey_effort_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_contr_lhd']['0']['value'] !== 'no') {
+		unset (
+			$form_state['values']['field_contr_lhd_justif']['0']['value'],
+			$form_state['values']['field_contr_lhd_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_contr_lhd_justif']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_contr_lhd_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_is_tcad']['0']['value']['Yes'] !== 'Yes') {
+		unset (
+			$form_state['values']['field_tcad_id']['0']['value'],
+			$form_state['values']['field_tcad_id_sources']['0']['value'],
+			$form_state['values']['field_geog_lgl_descrp']['0']['value'],
+			$form_state['values']['field_geog_lgl_descrp_sources']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_at_original_location']['0']['value'] == 'no') {
+		unset (
+			$form_state['values']['field_original_location_desc']['0']['value'],
+			$form_state['values']['field_date_moved']['0']['value'],
+			$form_state['values']['field_at_original_location_sources']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_est_act']['0']['value'] !== 'Estimated') {
+		unset (
+			$form_state['values']['field_construction_early']['0']['value'],
+			$form_state['values']['field_construction_late']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_est_act']['0']['value'] !== 'Actual') {
+		unset (
+			$form_state['values']['field_constr_date']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_plantype']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_plan_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_foundationtype']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_foundation_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_wall_facade']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_wall_facade_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_rooftype']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_rooftype_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_dormertype']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_dormertype_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_roofmaterials']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_roofmaterials_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_chimney_material']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_chimneys_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_window_type']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_windows_type_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_windows_material']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_windows_material_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_porches']['0']['value'] !== 'Yes') {
+		unset (
+			$form_state['values']['field_porchtype']['0']['value'],
+			$form_state['values']['field_porchtype_other']['0']['value'],
+			$form_state['values']['field_porches_roof']['0']['value'],
+			$form_state['values']['field_porches_roof_other']['0']['value'],
+			$form_state['values']['field_porches_post_material']['0']['value'],
+			$form_state['values']['field_porches_post_other']['0']['value'],
+			$form_state['values']['field_porches_pier_type']['0']['value'],
+			$form_state['values']['field_porches_pier_other']['0']['value'],
+			$form_state['values']['field_porches_rail_material']['0']['value'],
+			$form_state['values']['field_porches_rail_other']['0']['value']
+		);
+		$form_state['values']['field_porches_post']['0']['value'] = 'none';
+	}
+	if ($form_state['values']['field_porchtype']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_porchtype_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_porches_roof']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_porches_roof_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_porches_roof']['0']['value']['none'] === 'none') {
+		unset (
+			$form_state['values']['field_porches_roof_other']['0']['value'],
+			$form_state['values']['field_porches_post']['0']['value'],
+			$form_state['values']['field_porches_post_material']['0']['value'],
+			$form_state['values']['field_porches_post_other']['0']['value'],
+			$form_state['values']['field_porches_pier_type']['0']['value'],
+			$form_state['values']['field_porches_pier_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_porches_post']['0']['value'] === 'none') {
+		unset (
+			$form_state['values']['field_porches_post_material']['0']['value'],
+			$form_state['values']['field_porches_post_other']['0']['value'],
+			$form_state['values']['field_porches_pier_type']['0']['value'],
+			$form_state['values']['field_porches_pier_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_porches_post_material']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_porches_post_other']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_porches_post_material']['0']['value']['On piers'] !== 'On piers') {
+		unset (
+			$form_state['values']['field_porches_pier_type']['0']['value'],
+			$form_state['values']['field_porches_pier_other']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_porches_pier_type']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_porches_pier_other']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_porches_rail_material']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_porches_rail_other']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_doortype']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_doors_other']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_landscapefeatures']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_landscapefeatures_other']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_landscapefeatures']['0']['value']['Fence'] !== 'Fence') {
+		unset (
+			$form_state['values']['field_fence_height']['0']['value'],
+			$form_state['values']['field_fence_material']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_landscapefeatures']['0']['value']['Wall'] !== 'Wall') {
+		unset (
+			$form_state['values']['field_wall_height']['0']['value'],
+			$form_state['values']['field_wall_material']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_outbuildings']['0']['value']['Single Story Garage'] !== 'Single Story Garage') {
+		unset (
+			$form_state['values']['field_out_garage_single']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_outbuildings']['0']['value']['Garage Apartment'] !== 'Garage Apartment') {
+		unset (
+			$form_state['values']['field_out_garage_apt']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_outbuildings']['0']['value']['Garage Apartment'] !== 'Garage Apartment' && $form_state['values']['field_outbuildings']['0']['value']['Single Story Garage'] !== 'Single Story Garage') {
+		unset (
+			$form_state['values']['field_out_garage_wall']['0']['value'],
+			$form_state['values']['field_out_garage_rooftype']['0']['value'],
+			$form_state['values']['field_out_garage_roofmaterial']['0']['value']
+		);
+	}
+	if ($form_state['values']['field_outbuildings']['0']['value']['Barn'] !== 'Barn') {
+		unset (
+			$form_state['values']['field_out_barn']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_outbuildings']['0']['value']['Shed'] !== 'Shed') {
+		unset (
+			$form_state['values']['field_out_shed']['0']['value']
+		);
+	}	
+	if ($form_state['values']['field_outbuildings']['0']['value']['other'] !== 'other') {
+		unset (
+			$form_state['values']['field_outbuildings_other']['0']['value']
+		);
+	}
+	//drupal_set_message('<pre>' . check_plain(print_r($form_state, true)) . '</pre>');
+
+	return $form_state;
+}
+
+function customsite_lhdform_validate($form, &$form_state) {
+
+	//This will make 'other' fields blank if 'other' is selected, etc
+	$form_state = check_field_blanks($form_state);
+	
+	//drupal_set_message('<pre>' . check_plain(print_r($form_state['values']['field_constr_date'], true)) . '</pre>');
+
+	$tcad_id = $form_state['values']['field_tcad_id']['0']['value'];
+	if ($tcad_id !== '' && isset($form_state['values']['field_tcad_id']['0']['value'])) {
+		if (!ctype_digit($tcad_id) ||  strlen($tcad_id) !== 6){
+			form_set_error('field_tcad_id', 'The Travis Central Assessors District Property ID must be a six digit number.');
+		}
+	}
+	
+	$date_moved = $form_state['values']['field_date_moved']['0']['value'];
+	if ($date_moved !== '' && isset($form_state['values']['field_date_moved']['0']['value'])) {
+		if ($date_moved > date('Y') ||  strlen($date_moved) !== 4) {
+			form_set_error('field_date_moved', 'The Year Moved must be a four digit number less than or equal to '. date('Y'));
+		}
+	}
+	
+	$field_constr_date = $form_state['values']['field_constr_date']['0']['value'];
+	if ($field_constr_date !== '' && isset($form_state['values']['field_constr_date']['0']['value'])){
+		if ($field_constr_date > date('Y') ||  strlen($field_constr_date) !== 4|| !ctype_digit($field_constr_date)) {
+			form_set_error('field_constr_date', 'The Construction Year must be a four digit whole number less than or equal to '. date('Y'));
+		}
+	}
+	
+	$field_construction_early = $form_state['values']['field_construction_early']['0']['value'];
+	if ($field_construction_early !== '' && isset($form_state['values']['field_construction_early']['0']['value'])) {
+		if ($field_construction_early > date('Y') ||  strlen($field_construction_early) !== 4 || !ctype_digit($field_construction_early)) {
+			form_set_error('field_construction_early', 'The Construction Year must be a four digit whole number less than or equal to '. date('Y'));
+		}
+	}
+	
+	$field_construction_late = $form_state['values']['field_construction_late']['0']['value'];
+	if ($field_construction_late !== '' && isset($form_state['values']['field_construction_late']['0']['value'])) {
+		if ($field_construction_late > date('Y') || strlen($field_construction_late) !== 4 || !ctype_digit($field_construction_late)) {
+			form_set_error('field_construction_late', 'The Construction Year must be a four digit whole number less than or equal to '. date('Y'));
+		}
+		
+		if ($field_construction_late <= $field_construction_early){
+			form_set_error('field_construction_late', 'The Latest Construction Year must greater than the Earliest Construction Year');
+		}
+	}
+	
+	$field_stories = $form_state['values']['field_stories']['0']['value'];
+	if ($field_stories !== '' && isset($form_state['values']['field_stories']['0']['value'])) {
+		if ($field_stories < 1 ||  $field_stories > 199 || !ctype_digit($field_stories)) {
+			form_set_error('field_stories', 'The Number of Stories must be a whole number between 1 and 199');
+		}
+	}	
+	
+	$field_chimneys_int_num = $form_state['values']['field_chimneys_int_num']['0']['value'];
+	if ($field_chimneys_int_num !== '' && isset($form_state['values']['field_chimneys_int_num']['0']['value'])) {
+		if ($field_chimneys_int_num < 0 ||  $field_chimneys_int_num > 99 || !ctype_digit($field_chimneys_int_num)) {
+			form_set_error('field_chimneys_int_num', 'The Number of Interior Chimneys must be a whole number between 0 and 99');
+		}
+	}
+	
+	$field_chimneys_ext_num = $form_state['values']['field_chimneys_ext_num']['0']['value'];
+	if ($field_chimneys_ext_num !== '' && isset($form_state['values']['field_chimneys_ext_num']['0']['value'])) {
+		if ($field_chimneys_ext_num < 0 ||  $field_chimneys_ext_num > 99 || !ctype_digit($field_chimneys_ext_num)) {
+			form_set_error('field_chimneys_ext_num', 'The Number of Exterior Chimneys must be a whole number between 0 and 99');
+		}
+	}
+	$field_fence_height = $form_state['values']['field_fence_height']['0']['value'];
+	if ($field_fence_height !== '' && isset($form_state['values']['field_fence_height']['0']['value'])) {
+		if ($field_fence_height < 1 ||  $field_fence_height > 999 || !ctype_digit($field_fence_height)) {
+			form_set_error('field_fence_height', 'The Fence Height must be a whole number between 1 and 999');
+		}
+	}
+	$field_wall_height = $form_state['values']['field_wall_height']['0']['value'];
+	if ($field_wall_height !== '' && isset($form_state['values']['field_wall_height']['0']['value'])) {
+		if ($field_wall_height < 1 ||  $field_wall_height > 999 || !ctype_digit($field_wall_height)) {
+			form_set_error('field_wall_height', 'The Wall Height must be a whole number between 1 and 999');
+		}
+	}
+	$field_out_garage_single = $form_state['values']['field_out_garage_single']['0']['value'];
+	if ($field_out_garage_single !== '' && isset($form_state['values']['field_out_garage_single']['0']['value'])) {
+		if ($field_out_garage_single < 0 ||  $field_out_garage_single > 99 || !ctype_digit($field_out_garage_single)) {
+			form_set_error('field_out_garage_single', 'The Number of Single Story Garages must be a whole number between 0 and 99');
+		}
+	}
+	$field_out_garage_apt = $form_state['values']['field_out_garage_apt']['0']['value'];
+	if ($field_out_garage_apt !== '' && isset($form_state['values']['field_out_garage_apt']['0']['value'])) {
+		if ($field_out_garage_apt < 0 ||  $field_out_garage_apt > 99 || !ctype_digit($field_out_garage_apt)) {
+			form_set_error('field_out_garage_apt', 'The Number of Garage Apartments must be a whole number between 0 and 99');
+		}
+	}
+	$field_out_barn = $form_state['values']['field_out_barn']['0']['value'];
+	if ($field_out_barn !== '' && isset($form_state['values']['field_out_barn']['0']['value'])) {
+		if ($field_out_barn < 0 ||  $field_out_barn > 99 || !ctype_digit($field_out_barn)) {
+			form_set_error('field_out_barn', 'The Number of Barns must be a whole number between 0 and 99');
+		}
+	}
+	$field_out_shed = $form_state['values']['field_out_shed']['0']['value'];
+	if ($field_out_shed !== '' && isset($form_state['values']['field_out_shed']['0']['value'])) {
+		if ($field_out_shed < 0 ||  $field_out_shed > 99 || !ctype_digit($field_out_shed)) {
+			form_set_error('field_out_shed', 'The Number of Sheds must be a whole number between 0 and 99');
+		}
+	}
+    return;
+}
+
+function field_node_get($fieldname_ref){
+
+	$property_node = node_load($_GET['nid']);
+	$field_nid = $property_node->$fieldname_ref;
+	extract($field_nid, EXTR_PREFIX_ALL, "nid");
+	extract($nid_0, EXTR_PREFIX_ALL, "field");
+	$field_node = node_load($field_nid);
+
+return $field_node;
+}
+
+//$fieldname needs to 'tcad_id' or 'geog_lgl_descrp', etc., ie. no 'field' prefix or 'ref' suffix
+// make sure that sources fields in form code match $fieldname
+function execute_fieldnode($fieldname, $form_state){
+
+	$field_node = field_node_get('field_' . $fieldname . '_ref'); 
+	
+	$form_state['values']['field_sources']['0']['value'] = $form_state['values']['field_' . $fieldname . '_sources']['0']['value'];
+	unset($form_state['values']['field_' . $fieldname . '_sources']);
+	
+	$form_state['values']['field_other']['0']['value'] = $form_state['values']['field_' . $fieldname . '_other']['0']['value'];
+	unset($form_state['values']['field_' . $fieldname . '_other']);
+
+	
+	//is the form the same as the defaults/existing data?
+	$form_values = array_intersect_key($form_state['values'], (array)$field_node);
+	unset($form_values[revision_moderation]);
+	$node_values = array_intersect_key((array)$field_node, $form_state['values']);
+	unset($node_values[revision_moderation]);
+
+	foreach (array_keys($form_values) as $field_key) {
+		foreach ($form_values[$field_key] as $form_field_array) {
+			if (is_array($form_field_array)){
+				$form_values[$field_key] = array_values($form_field_array);
+			} else {
+				$form_values[$field_key] = array_values($form_values[$field_key]);
+			}
+		}		
+		$form_values[$field_key] = array_diff($form_values[$field_key], array(0), array(''));
+	}
+	
+	foreach (array_keys($form_values) as $field_key) {
+		$new_node_values[$field_key] = $node_values[$field_key];
+		unset ($node_values[$field_key]);
+		foreach ($new_node_values[$field_key] as $node_field_array) {
+				$node_values[$field_key][] = $node_field_array['value'];
+		}
+		$node_values[$field_key] = array_diff($node_values[$field_key], array(0), array(''));
+	}
+	
+	if ($form_values == $node_values) {
+		drupal_set_message('<pre>' . check_plain(print_r('fieldnode-' . $fieldname . ' was not updated because data did not change', true)) . '</pre>');
+	} else {
+		module_load_include('inc', 'node', 'node.pages');
+		drupal_execute('fieldnode_' . $fieldname . '_node_form', $form_state, (object) $field_node);
+	}
+	
+	//drupal_set_message('<pre>' . check_plain(print_r($form_values, true)) . '</pre>');
+	//drupal_set_message('<pre>' . check_plain(print_r($node_values, true)) . '</pre>');
+	
+	return $form_state;
+}
+
+//reformat multiple value fields to correct format needed for input
+function correct_multi_value_fields($fieldname, $form_state) {
+	$form_state['values'][$fieldname]['value'] = $form_state['values'][$fieldname]['0']['value'];
+	unset($form_state['values'][$fieldname]['0']);
+	
+	return $form_state;
+}
+
+
+function customsite_lhdform_submit($form, &$form_state) {
+
+	//drupal_set_message('<pre>' . check_plain(print_r($form_state, true)) . '</pre>');
+
+	//programmatically??
+	$fieldnames = array('survey_effort','contr_lhd','tcad_id','geog_lgl_descrp','owner','at_original_location','constr_date','stories','plan','foundation','wall_facade','rooftype','dormertype','roofmaterials','chimneys','windows','porches','doors','landscapefeatures','outbuildings');
+
+	
+	//programmatically??
+	$multi_value_fields = array('field_is_tcad', 'field_contr_lhd_justif', 'field_plantype','field_foundationtype','field_wall_facade','field_rooftype','field_dormertype','field_roofmaterials','field_chimney_material','field_window_type','field_windows_material','field_porchtype','field_porches_roof','field_porches_post_material','field_porches_pier_type','field_porches_rail_material', 'field_porches_post', 'field_doortype','field_landscapefeatures','field_outbuildings');
+	
+	foreach($multi_value_fields as $field){
+		$form_state = correct_multi_value_fields($field, $form_state);
+		unset($field);
+	}
+
+	$form_state['values']['op'] = t('Save');
+	$form_state['values']['revision_moderation'] = 0;
+	$orig_form_state = $form_state;
+	
+	foreach ($fieldnames as $fieldname) {
+		$form_state = execute_fieldnode($fieldname, $orig_form_state);
+	}
+	
+	//drupal_set_message('<pre>' . check_plain(print_r($form_state, true)) . '</pre>');
+
+    $form_state['redirect'] = 'node/' . $_GET['nid']; // Redirects the user.
+	
+}
+

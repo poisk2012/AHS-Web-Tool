@@ -1,0 +1,4 @@
+; $Id$
+name = photo_metadata_form module
+description = photo_metadata_form
+core = 6.x

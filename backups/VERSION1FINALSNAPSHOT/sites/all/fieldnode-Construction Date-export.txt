@@ -1,0 +1,131 @@
+  'name' => 'fieldnode-Construction Date',
+  'type' => 'field_constr_date',
+  'old_type' => 'field_constr_date',
+
+    'label' => 'Construction Date',
+    'field_name' => 'field_constr_date',
+    'type' => 'number_integer',
+    'widget_type' => 'number',
+
+'_error_element' => 'default_value_widget][field_constr_date][0][value',
+
+
+
+
+$content['type']  = array (
+  'name' => 'fieldnode-Construction Date',
+  'type' => 'field_constr_date',
+  'description' => '',
+  'title_label' => 'Title',
+  'body_label' => '',
+  'min_word_count' => '0',
+  'help' => '',
+  'node_options' => 
+  array (
+    'revision' => true,
+    'revision_moderation' => true,
+    'status' => false,
+    'promote' => false,
+    'sticky' => false,
+  ),
+  'new_revisions' => 1,
+  'revisioning_auto_publish' => 1,
+  'show_preview_changes' => 0,
+  'old_type' => 'field_constr_date',
+  'orig_type' => '',
+  'module' => 'node',
+  'custom' => '1',
+  'modified' => '1',
+  'locked' => '0',
+  'ant' => '1',
+  'ant_pattern' => '',
+  'ant_php' => 0,
+);
+$content['fields']  = array (
+  0 => 
+  array (
+    'label' => 'Construction Date',
+    'field_name' => 'field_constr_date',
+    'type' => 'number_integer',
+    'widget_type' => 'number',
+    'change' => 'Change basic information',
+    'weight' => '26',
+    'description' => '',
+    'default_value' => 
+    array (
+      0 => 
+      array (
+        'value' => '',
+        '_error_element' => 'default_value_widget][field_constr_date][0][value',
+      ),
+    ),
+    'default_value_php' => '',
+    'default_value_widget' => NULL,
+    'group' => false,
+    'required' => 0,
+    'multiple' => '0',
+    'min' => '',
+    'max' => '',
+    'prefix' => '',
+    'suffix' => '',
+    'allowed_values' => '',
+    'allowed_values_php' => '',
+    'op' => 'Save field settings',
+    'module' => 'number',
+    'widget_module' => 'number',
+    'columns' => 
+    array (
+      'value' => 
+      array (
+        'type' => 'int',
+        'not null' => false,
+        'sortable' => true,
+      ),
+    ),
+    'display_settings' => 
+    array (
+      'label' => 
+      array (
+        'format' => 'above',
+        'exclude' => 0,
+      ),
+      'teaser' => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'full' => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      4 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      2 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      3 => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+      'token' => 
+      array (
+        'format' => 'default',
+        'exclude' => 0,
+      ),
+    ),
+  ),
+);
+$content['extra']  = array (
+  'title' => '27',
+  'revision_information' => '30',
+  'author' => '29',
+  'options' => '31',
+  'menu' => '28',
+);
